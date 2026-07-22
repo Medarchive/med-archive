@@ -5,8 +5,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { pageRoutes } from "../../../lib/config/routes";
+// import { useRouter } from "next/navigation";
+// import { pageRoutes } from "../../../lib/config/routes";
 import { SignInSchema } from "../../../lib/validations/authValidations";
 import {
 	FormControl,
@@ -21,7 +21,7 @@ type SignInValues = z.infer<typeof SignInSchema>;
 
 export default function LoginForm() {
 	const [isLoading, setIsLoading] = useState(false);
-	const router = useRouter();
+	// const router = useRouter();
 
 	const form = useForm<SignInValues>({
 		resolver: zodResolver(SignInSchema),
