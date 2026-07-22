@@ -3,6 +3,19 @@ import { Button } from "../ui/button";
 import Image from "next/image";
 
 export default function Process() {
+	const steps = [
+		{
+			title: "Create your Care ID",
+			text: "Store encrypted health records, grant consent-based access to healthcare providers, and protect your privacy using blockchain and Zero-Knowledge technology.",
+			id: 1,
+		},
+		{
+			title: "Upload encrypted records",
+			text: "Store encrypted health records, grant consent-based access to healthcare providers, and protect your privacy using blockchain and Zero-Knowledge technology.",
+			id: 2,
+		},
+	];
+
 	return (
 		<section>
 			<div className="custom-container">
@@ -40,9 +53,9 @@ export default function Process() {
 						</div>
 					</div>
 					<div className="flex max-md:mx-auto flex-col gap-10 mt-20 max-w-120 overflow-y-auto hide-scroll md:flex-1/2">
-						<Card />
-						<Card />
-						<Card />
+						{steps.map((s) => (
+							<Card key={s.id} text={s.text} title={s.title} id={s.id} />
+						))}
 					</div>
 				</div>
 			</div>
@@ -50,19 +63,23 @@ export default function Process() {
 	);
 }
 
-function Card() {
+function Card({
+	title,
+	text,
+	id,
+}: {
+	title: string;
+	text: string;
+	id: number;
+}) {
 	return (
 		<div className="flex gap-2 w-full sm:gap-5 md:max-w-105.25 md:max-h-110">
 			<div className="bg-black rounded-full h-10 min-h-10 min-w-10 sm:w-12 sm:h-12 sm:min-w-12 sm:min-h-12 gap-4 flex text-white justify-center items-center font-medium">
-				1
+				{id}
 			</div>
 			<div className="border border-[#dedede] rounded-[24px] px-5 py-10 min-h-80 sm:min-h-110">
-				<h3 className="font-medium text-2xl mb-3.5">Create your Care ID</h3>
-				<p>
-					Store encrypted health records, grant consent-based access to
-					healthcare providers, and protect your privacy using blockchain and
-					Zero-Knowledge technology.
-				</p>
+				<h3 className="font-medium text-2xl mb-3.5">{title}</h3>
+				<p>{text}</p>
 			</div>
 		</div>
 	);

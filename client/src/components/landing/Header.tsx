@@ -9,16 +9,16 @@ export default function Header() {
 	const { isOpen, openMenu, closeMenu } = useHeaderStore();
 
 	return (
-		<header className="bg-white fixed inset-x-0 top-0 z-50 shadowxs">
+		<header className="bg-white fixed inset-x-0 top-0 z-50">
 			<div className="custom-container flex justify-between items-center py-8">
 				<div>
 					<Logo />
 				</div>
 
 				<div
-					className={`fixed bg-white/20 backdrop-blur-[2px] max-lg:inset-0 lg:static duration-500 ${isOpen ? "max-lg:translate-y-0" : "max-lg:-translate-y-full"}`}
+					className={`fixed bg-white backdrop-blur-[2px] max-lg:inset-0 lg:static duration-500 ${isOpen ? "max-lg:translate-y-0" : "max-lg:-translate-y-full"}`}
 				>
-					<nav className="bg-white max-lg:min-h-[50vh] flex flex-col max-lg:pt-11.5 max-lg:pb-20 max-lg:px-10 max-lg:shadow-2xs lg:flex-row">
+					<nav className="bg-white max-lg:min-h-[50vh] flex flex-col max-lg:pt-11.5 max-lg:pb-20 max-lg:px-10 lg:flex-row">
 						<IoMdClose
 							onClick={closeMenu}
 							className="text-[35px] place-self-end lg:hidden cursor-pointer"
