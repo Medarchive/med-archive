@@ -136,4 +136,10 @@
 	.custom-container {
 		@apply max-w-300 mx-auto px-4 md:px-6 lg:px-8;
 	}
+	.hide-scroll::-webkit-scrollbar {
+		display: none;
+		scrollbar-width: 1px;
+		scroll-behavior: smooth;
+		/* scrollbar-color: #18234f; */
+	}
 }
