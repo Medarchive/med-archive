@@ -1,6 +1,7 @@
-import React from "react";
+'use client'
 import { Button } from "../ui/button";
 import Image from "next/image";
+import { pageRoutes } from "../../lib/config/routes";
 
 export default function Hero() {
 	return (
@@ -17,7 +18,7 @@ export default function Hero() {
 					</p>
 
 					<div className="flex flex-col gap-3 items-center mt-6 md:flex-row max-lg:justify-center">
-						<Button>Get Started</Button>
+						<Button href={pageRoutes.authRoutes.SIGN_UP}>Get Started</Button>
 						<Button variant="ghost">Request Demo</Button>
 					</div>
 				</div>

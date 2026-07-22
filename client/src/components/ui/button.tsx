@@ -7,11 +7,13 @@ const buttonVariants = cva(
 	{
 		variants: {
 			variant: {
-				default: "bg-primary text-white",
+				default:
+					"bg-primary text-white disabled:bg-[#00803A87] disabled:cursor-not-allowed",
 				destructive:
 					"bg-error-500 text-white hover:bg-error-500/80 focus-visible:ring-destructive/20",
 				outline: "border border-primary-500",
 				secondary: "bg-[#c8c8c8] text-black",
+				dark: "bg-[#000000] text-white",
 				ghost: "bg-transparent hover:text-primary hover:font-semibold",
 			},
 			size: {

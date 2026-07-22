@@ -4,6 +4,8 @@ import { IoMdClose, IoMdMenu } from "react-icons/io";
 import Logo from "../ui/custom/Logo";
 import { Button } from "../ui/button";
 import { useHeaderStore } from "@/lib/stores/header-store";
+import { pageRoutes } from "../../lib/config/routes";
+import Link from "next/link";
 
 export default function Header() {
 	const { isOpen, openMenu, closeMenu } = useHeaderStore();
@@ -26,27 +28,27 @@ export default function Header() {
 
 						<ul className="place-self-center max-lg:mt-10 flex flex-col gap-6 items-center lg:flex-row">
 							<li className="hover:font-semibold hover:text-primary duration-150">
-								<a href="" onClick={closeMenu}>
+								<Link href="/" onClick={closeMenu}>
 									Home
-								</a>
+								</Link>
 							</li>
 
 							<li className="hover:font-semibold hover:text-primary duration-150">
-								<a href="" onClick={closeMenu}>
+								<Link href="/#about" onClick={closeMenu}>
 									About
-								</a>
+								</Link>
 							</li>
 
 							<li className="hover:font-semibold hover:text-primary duration-150">
-								<a href="" onClick={closeMenu}>
+								<Link href="/#how" onClick={closeMenu}>
 									How it Works
-								</a>
+								</Link>
 							</li>
 
 							<li className="hover:font-semibold hover:text-primary duration-150">
-								<a href="" onClick={closeMenu}>
-									Services
-								</a>
+								<Link href="/#features" onClick={closeMenu}>
+									Features
+								</Link>
 							</li>
 
 							<li className="hover:font-semibold hover:text-primary duration-150">
@@ -57,9 +59,15 @@ export default function Header() {
 						</ul>
 
 						<div className="lg:hidden place-self-center mt-8.5 flex flex-col gap-3 items-center">
-							<Button onClick={closeMenu}>Get Started</Button>
+							<Button href={pageRoutes.authRoutes.SIGN_UP} onClick={closeMenu}>
+								Get Started
+							</Button>
 
-							<Button variant="ghost" onClick={closeMenu}>
+							<Button
+								href={pageRoutes.authRoutes.SIGN_IN}
+								variant="ghost"
+								onClick={closeMenu}
+							>
 								Login
 							</Button>
 						</div>
@@ -73,8 +81,10 @@ export default function Header() {
 					/>
 
 					<div className="hidden lg:flex gap-3 items-center">
-						<Button variant="ghost">Login</Button>
-						<Button>Get Started</Button>
+						<Button href={pageRoutes.authRoutes.SIGN_IN} variant="ghost">
+							Login
+						</Button>
+						<Button href={pageRoutes.authRoutes.SIGN_UP}>Get Started</Button>
 					</div>
 				</div>
 			</div>

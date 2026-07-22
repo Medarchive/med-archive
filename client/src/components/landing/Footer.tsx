@@ -1,7 +1,8 @@
-import React from "react";
+'use client'
 import Logo from "../ui/custom/Logo";
 import { Button } from "../ui/button";
 import Image from "next/image";
+import { pageRoutes } from "../../lib/config/routes";
 
 export default function Footer() {
 	return (
@@ -14,7 +15,7 @@ export default function Footer() {
 						healthcare providers, and protect your privacy using blockchain and
 						Zero-Knowledge technology.
 					</p>
-					<Button>Get Started</Button>
+					<Button href={pageRoutes.authRoutes.SIGN_UP}>Get Started</Button>
 				</div>
 				<div className="flex justify-between gap-5 sm:gap-24 max-sm:max-w-100">
 					<ul className="flex flex-col gap-6 ">

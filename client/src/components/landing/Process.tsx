@@ -1,6 +1,7 @@
-import React from "react";
+'use client'
 import { Button } from "../ui/button";
 import Image from "next/image";
+import { pageRoutes } from "../../lib/config/routes";
 
 export default function Process() {
 	const steps = [
@@ -17,7 +18,7 @@ export default function Process() {
 	];
 
 	return (
-		<section>
+		<section id="how">
 			<div className="custom-container">
 				<div className="min-h-[20vh] lg:min-h-[50vh] flex items-center justify-center">
 					<h1 className="text-3xl sm:text-5xl lg:text-[64px] text-center lg:leading-[100%] lg:tracking-[-5%]">
@@ -40,7 +41,7 @@ export default function Process() {
 							healthcare providers, and protect your privacy using blockchain
 							and Zero-Knowledge technology.
 						</p>
-						<Button className="md:mb-10 md:mt-8">Get Started</Button>
+						<Button href={pageRoutes.authRoutes.SIGN_UP} className="md:mb-10 md:mt-8">Get Started</Button>
 
 						<div className="rounded-[14px] overflow-hidden lg:h-120">
 							<Image

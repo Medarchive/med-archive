@@ -1,16 +1,20 @@
+'use client'
 import React from "react";
 import { Button } from "../ui/button";
+import { pageRoutes } from "../../lib/config/routes";
 
 export default function Why() {
 	return (
-		<section className="bg-secondary lg:mt-24 py-13.5">
+		<section id="about" className="bg-secondary lg:mt-24 py-13.5">
 			<div className="custom-container flex flex-col lg:flex-row justify-between items-center gap-10.75">
 				<div className="text-white flex flex-col gap-10.75 max-lg:items-center max-lg:text-center max-lg:mt-5">
-					<Button variant="secondary">Get Started</Button>
+					<Button href={pageRoutes.authRoutes.SIGN_UP} variant="secondary">
+						Get Started
+					</Button>
 					<h2 className="text-[36px] leading-[100%] lg:text-[48px]">
 						Why <br className="lg:hidden" /> MedArchive <br /> Africa?
 					</h2>
-					<Button>Get Started</Button>
+					<Button href={pageRoutes.authRoutes.SIGN_UP}>Get Started</Button>
 				</div>
 				<div className="space-y-3 w-full max-w-xl">
 					<WhyCard text="Patient-owned records" />

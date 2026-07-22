@@ -26,7 +26,7 @@ export default function Features() {
 	];
 
 	return (
-		<section className="pt-11 lg:pt-23 pb-20 lg:pb-28">
+		<section id="features" className="pt-11 lg:pt-23 pb-20 lg:pb-28">
 			<div className="custom-container">
 				<h2 className="text-[28px] lg:text-[36px] text-center">Features</h2>
 
