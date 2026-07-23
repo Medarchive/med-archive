@@ -17,9 +17,12 @@ import {
 	Form,
 } from "../../../components/ui/form";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { pageRoutes } from "../../../lib/config/routes";
 
 export default function VerifyOtpForm() {
 	const [isLoading, setIsLoading] = useState(false);
+	const router = useRouter();
 
 	// 2 minute countdown
 	const [timeLeft, setTimeLeft] = useState(120);
@@ -73,6 +76,7 @@ export default function VerifyOtpForm() {
 		setTimeout(() => {
 			toast.success("Verification Successful");
 			setIsLoading(false);
+			router.push(pageRoutes.authRoutes.SIGN_IN);
 		}, 2000);
 	};
 

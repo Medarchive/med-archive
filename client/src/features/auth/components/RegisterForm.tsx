@@ -162,12 +162,12 @@ export default function RegisterForm() {
 				</form>
 			</Form>
 
-			<div className="flex flex-col w-full gap-4">
+			{/* <div className="flex flex-col w-full gap-4">
 				<div className="text-center text-primary font-semibold my-1">Or</div>
 				<Button className="w-full" variant="dark">
 					Connect Wallet
 				</Button>
-			</div>
+			</div> */}
 		</div>
 	);
 }
