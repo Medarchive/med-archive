@@ -65,7 +65,7 @@ export const SignUpSchema = z.object({
 export const VerifyOtpSchema = z.object({
 	otp: z
 		.string()
-		.length(4, "OTP must be 4 digits")
+		.length(6, "OTP must be 4 digits")
 		.regex(/^\d+$/, "OTP must contain only numbers"),
 });
 

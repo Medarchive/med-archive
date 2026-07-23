@@ -1,5 +1,5 @@
 "use client";
-
+import { motion } from "framer-motion";
 import { IoMdClose, IoMdMenu } from "react-icons/io";
 import Logo from "../ui/custom/Logo";
 import { Button } from "../ui/button";
@@ -13,9 +13,13 @@ export default function Header() {
 	return (
 		<header className="bg-white fixed inset-x-0 top-0 z-50">
 			<div className="custom-container flex justify-between items-center py-8">
-				<div>
+				<motion.div
+					initial={{ opacity: 0, y: -15 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.5 }}
+				>
 					<Logo />
-				</div>
+				</motion.div>
 
 				<div
 					className={`fixed bg-white backdrop-blur-[2px] max-lg:inset-0 lg:static duration-500 ${isOpen ? "max-lg:translate-y-0" : "max-lg:-translate-y-full"}`}
@@ -80,12 +84,17 @@ export default function Header() {
 						className="text-2xl sm:text-3xl lg:hidden cursor-pointer"
 					/>
 
-					<div className="hidden lg:flex gap-3 items-center">
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						transition={{ delay: 0.2 }}
+						className="hidden lg:flex gap-3 items-center"
+					>
 						<Button href={pageRoutes.authRoutes.SIGN_IN} variant="ghost">
 							Login
 						</Button>
 						<Button href={pageRoutes.authRoutes.SIGN_UP}>Get Started</Button>
-					</div>
+					</motion.div>
 				</div>
 			</div>
 		</header>

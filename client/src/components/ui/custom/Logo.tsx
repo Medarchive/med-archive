@@ -9,6 +9,7 @@ const Logo = () => {
 				className="h-full w-full object-contain"
 				height={100}
 				width={100}
+				loading="eager"
 				alt="Med Archive Logo"
 			/>
 		</Link>

@@ -5,8 +5,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-// import { useRouter } from "next/navigation";
-// import { pageRoutes } from "../../../lib/config/routes";
+import { useRouter } from "next/navigation";
 import { SignUpSchema } from "../../../lib/validations/authValidations";
 import {
 	FormControl,
@@ -16,12 +15,13 @@ import {
 	Form,
 } from "../../../components/ui/form";
 import { toast } from "sonner";
+import { pageRoutes } from "../../../lib/config/routes";
 
 type SignUpValues = z.infer<typeof SignUpSchema>;
 
 export default function RegisterForm() {
 	const [isLoading, setIsLoading] = useState(false);
-	// const router = useRouter();
+	const router = useRouter();
 
 	const form = useForm<SignUpValues>({
 		resolver: zodResolver(SignUpSchema),
@@ -44,9 +44,9 @@ export default function RegisterForm() {
 		setIsLoading(true);
 
 		setTimeout(() => {
-			toast.success("Register Successful");
+			toast.success("Submitted Successfully");
 			setIsLoading(false);
-			// router.push("/");
+			router.push(pageRoutes.authRoutes.VERIFY_OTP(values.email));
 		}, 2000);
 	};
 
