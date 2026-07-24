@@ -76,7 +76,7 @@ export default function VerifyOtpForm() {
 		setTimeout(() => {
 			toast.success("Verification Successful");
 			setIsLoading(false);
-			router.push(pageRoutes.authRoutes.SIGN_IN);
+			router.push(pageRoutes.authRoutes.PERSONAL_INFO);
 		}, 2000);
 	};
 

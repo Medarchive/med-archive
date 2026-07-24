@@ -3,5 +3,6 @@ export const pageRoutes = {
 		SIGN_IN: "/auth/sign-in",
 		SIGN_UP: "/auth/sign-up",
 		VERIFY_OTP: (email: string) => `/auth/sign-up/verify-otp?email=${email}`,
+		PERSONAL_INFO: "/auth/sign-up/personal-info",
 	},
 };

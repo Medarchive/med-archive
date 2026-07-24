@@ -1,9 +1,10 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/utils";
+import { PiSpinner } from "react-icons/pi";
 
 const buttonVariants = cva(
-	"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[8px] text-base transition-all disabled:pointer-events-none disabled:bg-primary-400 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-none focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer duration-150 hover:scale-[1.05] active:scale-[0.98]",
+	"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[8px] text-base transition-all disabled:pointer-events-none disabled:bg-primary-400 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-none focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer duration-150 hover:scale-[0.97] active:scale-[1]",
 	{
 		variants: {
 			variant: {
@@ -94,7 +95,10 @@ function Button(props: ButtonProps) {
 			>
 				{isLoading ? (
 					<span className="flex items-center gap-2">
-						<span className="opacity-80 animate-pulse">loading...</span>
+						{/* <span className="opacity-80 animate-pulse">loading...</span> */}
+						<span className="animate-spin">
+							<PiSpinner />
+						</span>
 					</span>
 				) : (
 					children
@@ -115,7 +119,10 @@ function Button(props: ButtonProps) {
 		>
 			{isLoading ? (
 				<span className="flex items-center gap-2">
-					<span className="opacity-80 animate-pulse">loading...</span>
+					{/* <span className="opacity-80 animate-pulse">loading...</span> */}
+					<span className="animate-spin ">
+						<PiSpinner size={32} className="text-4xl" />
+					</span>
 				</span>
 			) : (
 				children
