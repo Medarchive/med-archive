@@ -77,7 +77,7 @@ export default function UploadRecordForm() {
 	};
 
 	return (
-		<div className="flex justify-center px-4 py-16">
+		<div className="flex justify-center py-16">
 			<Form {...form}>
 				<form
 					onSubmit={form.handleSubmit(onSubmit)}

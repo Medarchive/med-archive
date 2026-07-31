@@ -8,7 +8,7 @@ export default function GetStartedIntro() {
 	const router = useRouter();
 
 	return (
-		<div className="min-h-screen flex flex-col items-center justify-center gap-8 text-center px-4">
+		<div className="min-h-screen flex flex-col items-center justify-center gap-8 text-center">
 			<div className="space-y-1">
 				<h2 className="font-bold text-2xl sm:text-3xl">
 					Your journey starts here!

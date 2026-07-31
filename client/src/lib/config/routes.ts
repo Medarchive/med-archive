@@ -9,4 +9,12 @@ export const pageRoutes = {
 		GET_STARTED: "/auth/sign-up/get-started",
 		UPLOAD_RECORD: "/auth/sign-up/upload-record",
 	},
+	dashboardRoutes: {
+		DASHBOARD: "/dashboard",
+		CARE_ID: "/dashboard/care-id",
+		UPLOAD_RECORD: "/dashboard/upload-record",
+		PROVIDER_REQUEST: "/dashboard/provider-request",
+		MEDICAL_TIMELINE: "/dashboard/medical-timeline",
+		WALLET: "/dashboard/wallet",
+	},
 };
