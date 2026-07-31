@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { Menu, Search, Bell, User, Wallet } from "lucide-react";
 import { useHeaderStore } from "@/lib/stores/header-store";
+import { pageRoutes } from "@/lib/config/routes";
 
 interface DashboardHeaderProps {
 	walletAddress?: string;
@@ -45,12 +47,12 @@ export default function DashboardHeader({
 					<Bell className="size-4.5" />
 				</button>
 
-				<button
-					type="button"
+				<Link
+					href={pageRoutes.dashboardRoutes.PROFILE}
 					className="flex size-10 items-center justify-center rounded-full border border-[#F5F5F5] text-gray-600 duration-150 hover:bg-[#FAFAFA]"
 				>
 					<User className="size-4.5" />
-				</button>
+				</Link>
 			</div>
 		</header>
 	);

@@ -1,0 +1,356 @@
+"use client";
+import { useState } from "react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import InputField from "../../../components/ui/custom/InputField";
+import SelectField from "../../../components/ui/custom/SelectField";
+import PhoneField from "../../../components/ui/custom/PhoneField";
+import DateField from "../../../components/ui/custom/DateField";
+import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormMessage,
+} from "../../../components/ui/form";
+import { PersonalInfoSchema } from "../../../lib/validations/authValidations";
+import { country } from "../../../lib/utils/countries";
+import ProfileFormFooter from "./ProfileFormFooter";
+
+type PersonalInfoValues = z.infer<typeof PersonalInfoSchema>;
+
+const countryOptions = country.map((c) => ({ label: c.name, value: c.name }));
+
+export default function PersonalInfoTab() {
+	const [isEditing, setIsEditing] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
+
+	const form = useForm<PersonalInfoValues>({
+		resolver: zodResolver(PersonalInfoSchema),
+		mode: "onChange",
+		reValidateMode: "onChange",
+		defaultValues: {
+			first_name: "Anthony",
+			middle_name: "James",
+			last_name: "Timothy",
+			gender: "male",
+			dial_code: "+234",
+			phone_number: "8012345678",
+			date_of_birth: "1991-05-14",
+			address_line_1: "5, oleh street,",
+			address_line_2: "55 Bazuma layout",
+			city: "Eko",
+			state: "Lagos",
+			country: "Nigeria",
+			postal_code: "210001",
+		},
+	});
+
+	const {
+		formState: { isValid, isSubmitting },
+	} = form;
+
+	const disabled = !isEditing;
+
+	const onSubmit = (values: PersonalInfoValues) => {
+		console.log(values);
+		setIsLoading(true);
+
+		setTimeout(() => {
+			toast.success("Profile updated successfully");
+			setIsLoading(false);
+			setIsEditing(false);
+		}, 1500);
+	};
+
+	return (
+		<Form {...form}>
+			<form
+				onSubmit={form.handleSubmit(onSubmit)}
+				className="space-y-4 my-5 sm:max-w-155"
+			>
+				<div className="grid gap-4 sm:grid-cols-2">
+					<FormField
+						control={form.control}
+						name="first_name"
+						render={({ field, fieldState }) => (
+							<FormItem>
+								<FormControl>
+									<InputField
+										{...field}
+										label=""
+										placeholder="First Name"
+										type="text"
+										disabled={disabled}
+										error={fieldState.error?.message ?? null}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+
+					<FormField
+						control={form.control}
+						name="middle_name"
+						render={({ field, fieldState }) => (
+							<FormItem>
+								<FormControl>
+									<InputField
+										{...field}
+										label=""
+										placeholder="Middle Name"
+										type="text"
+										disabled={disabled}
+										error={fieldState.error?.message ?? null}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+
+				<FormField
+					control={form.control}
+					name="last_name"
+					render={({ field, fieldState }) => (
+						<FormItem>
+							<FormControl>
+								<InputField
+									{...field}
+									label=""
+									placeholder="Last Name"
+									type="text"
+									disabled={disabled}
+									error={fieldState.error?.message ?? null}
+								/>
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
+
+				<FormField
+					control={form.control}
+					name="gender"
+					render={({ field, fieldState }) => (
+						<FormItem>
+							<div className="flex items-center gap-6">
+								<label className="flex items-center gap-2 text-sm cursor-pointer">
+									<input
+										type="radio"
+										value="male"
+										checked={field.value === "male"}
+										onChange={field.onChange}
+										disabled={disabled}
+										className="accent-primary size-4"
+									/>
+									Male
+								</label>
+
+								<label className="flex items-center gap-2 text-sm cursor-pointer">
+									<input
+										type="radio"
+										value="female"
+										checked={field.value === "female"}
+										onChange={field.onChange}
+										disabled={disabled}
+										className="accent-primary size-4"
+									/>
+									Female
+								</label>
+							</div>
+
+							<FormMessage>{fieldState.error?.message}</FormMessage>
+						</FormItem>
+					)}
+				/>
+
+				<div className="grid gap-4 sm:grid-cols-2">
+					<FormField
+						control={form.control}
+						name="phone_number"
+						render={({ field, fieldState }) => (
+							<FormItem>
+								<FormControl>
+									<PhoneField
+										name={field.name}
+										dialCode={form.watch("dial_code")}
+										number={field.value}
+										disabled={disabled}
+										onDialCodeChange={(dialCode) =>
+											form.setValue("dial_code", dialCode, {
+												shouldValidate: true,
+											})
+										}
+										onNumberChange={field.onChange}
+										onBlur={field.onBlur}
+										error={fieldState.error?.message ?? null}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+
+					<FormField
+						control={form.control}
+						name="date_of_birth"
+						render={({ field, fieldState }) => (
+							<FormItem>
+								<FormControl>
+									<DateField
+										name={field.name}
+										value={field.value}
+										onChange={field.onChange}
+										onBlur={field.onBlur}
+										disabled={disabled}
+										max={new Date().toISOString().split("T")[0]}
+										error={fieldState.error?.message ?? null}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+
+				<FormField
+					control={form.control}
+					name="address_line_1"
+					render={({ field, fieldState }) => (
+						<FormItem>
+							<FormControl>
+								<InputField
+									{...field}
+									label=""
+									placeholder="Address"
+									type="text"
+									disabled={disabled}
+									error={fieldState.error?.message ?? null}
+								/>
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
+
+				<FormField
+					control={form.control}
+					name="address_line_2"
+					render={({ field, fieldState }) => (
+						<FormItem>
+							<FormControl>
+								<InputField
+									{...field}
+									label=""
+									placeholder="Other Address"
+									type="text"
+									disabled={disabled}
+									error={fieldState.error?.message ?? null}
+								/>
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
+
+				<div className="grid gap-4 sm:grid-cols-2">
+					<FormField
+						control={form.control}
+						name="city"
+						render={({ field, fieldState }) => (
+							<FormItem>
+								<FormControl>
+									<InputField
+										{...field}
+										label=""
+										placeholder="City"
+										type="text"
+										disabled={disabled}
+										error={fieldState.error?.message ?? null}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+
+					<FormField
+						control={form.control}
+						name="state"
+						render={({ field, fieldState }) => (
+							<FormItem>
+								<FormControl>
+									<InputField
+										{...field}
+										label=""
+										placeholder="State"
+										type="text"
+										disabled={disabled}
+										error={fieldState.error?.message ?? null}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+
+				<div className="grid gap-4 sm:grid-cols-2">
+					<FormField
+						control={form.control}
+						name="country"
+						render={({ field, fieldState }) => (
+							<FormItem>
+								<FormControl>
+									<SelectField
+										name={field.name}
+										label="Country"
+										value={field.value}
+										onChange={field.onChange}
+										onBlur={field.onBlur}
+										disabled={disabled}
+										options={countryOptions}
+										error={fieldState.error?.message ?? null}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+
+					<FormField
+						control={form.control}
+						name="postal_code"
+						render={({ field, fieldState }) => (
+							<FormItem>
+								<FormControl>
+									<InputField
+										{...field}
+										label="Postal Code"
+										placeholder="Postal Code"
+										type="text"
+										disabled={disabled}
+										error={fieldState.error?.message ?? null}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+
+				<ProfileFormFooter
+					isEditing={isEditing}
+					onEdit={() => setIsEditing(true)}
+					isLoading={isLoading}
+					disabled={disabled || !isValid || isSubmitting}
+				/>
+			</form>
+		</Form>
+	);
+}

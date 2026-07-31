@@ -11,6 +11,7 @@ export const pageRoutes = {
 	},
 	dashboardRoutes: {
 		DASHBOARD: "/dashboard",
+		PROFILE: "/dashboard/profile",
 		CARE_ID: "/dashboard/care-id",
 		UPLOAD_RECORD: "/dashboard/upload-record",
 		PROVIDER_REQUEST: "/dashboard/provider-request",

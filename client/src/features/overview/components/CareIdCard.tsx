@@ -18,7 +18,7 @@ export default function CareIdCard({ careId, status }: CareIdCardProps) {
 	};
 
 	return (
-		<div className="flex flex-col justify-between rounded-[12px] bg-primary p-5 text-white">
+		<div className="flex flex-col justify-between rounded-[12px] bg-[linear-gradient(180deg,#00803A_0%,#074221_100%)] p-5 text-white">
 			<p className="text-sm text-white/80">Care ID Status</p>
 
 			<div className="mt-4 flex items-center gap-2">
@@ -30,7 +30,11 @@ export default function CareIdCard({ careId, status }: CareIdCardProps) {
 					className="text-white/80 duration-150 hover:text-white"
 					aria-label="Copy Care ID"
 				>
-					{copied ? <Check className="size-4.5" /> : <Copy className="size-4.5" />}
+					{copied ? (
+						<Check className="size-4.5" />
+					) : (
+						<Copy className="size-4.5" />
+					)}
 				</button>
 			</div>
 
