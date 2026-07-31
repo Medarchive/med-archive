@@ -13,12 +13,12 @@ export const SignUpSchema = z.object({
 		.nonempty("Email is required")
 		.email("Invalid email address"),
 
-	full_name: z
-		.string()
-		.nonempty("Full name is required")
-		.trim()
-		.min(2, "Full name is too short")
-		.max(50, "Full name is too long"),
+	// full_name: z
+	// 	.string()
+	// 	.nonempty("Full name is required")
+	// 	.trim()
+	// 	.min(2, "Full name is too short")
+	// 	.max(50, "Full name is too long"),
 
 	password: z
 		.string()
@@ -60,6 +60,85 @@ export const SignUpSchema = z.object({
 	// .refine((data) => data.password === data.confirmPassword, {
 	//   message: "Passwords do not match",
 	//   path: ["confirmPassword"],
+});
+
+export const PersonalInfoSchema = z.object({
+	first_name: z
+		.string()
+		.trim()
+		.min(2, "First name is too short")
+		.max(50, "First name is too long"),
+
+	middle_name: z
+		.string()
+		.trim()
+		.max(50, "Middle name is too long")
+		.optional()
+		.or(z.literal("")),
+
+	last_name: z
+		.string()
+		.trim()
+		.min(2, "Last name is too short")
+		.max(50, "Last name is too long"),
+
+	gender: z.enum(["male", "female"], {
+		error: "Please select your gender",
+	}),
+
+	dial_code: z.string().nonempty("Select a dial code"),
+
+	phone_number: z
+		.string()
+		.trim()
+		.regex(/^\d+$/, "Phone number must be digits only")
+		.min(7, "Phone number too short")
+		.max(15, "Phone number too long"),
+
+	date_of_birth: z
+		.string()
+		.min(1, "Date of birth is required")
+		.refine(
+			(value) => !Number.isNaN(Date.parse(value)),
+			"Invalid date of birth",
+		)
+		.refine((value) => {
+			const dob = new Date(value);
+			return dob <= new Date();
+		}, "Date of birth cannot be in the future"),
+
+	address_line_1: z
+		.string()
+		.trim()
+		.min(5, "Address is too short")
+		.max(200, "Address is too long"),
+
+	address_line_2: z.string().trim().max(200, "Address is too long").optional().or(z.literal("")),
+
+	city: z
+		.string()
+		.trim()
+		.min(2, "City is required")
+		.max(100, "City is too long"),
+
+	state: z
+		.string()
+		.trim()
+		.min(2, "Region/State is required")
+		.max(100, "Region is too long"),
+
+	country: z
+		.string()
+		.trim()
+		.min(2, "Country is required")
+		.max(100, "Country is too long"),
+
+	postal_code: z
+		.string()
+		.trim()
+		.min(3, "Postal code is too short")
+		.max(20, "Postal code is too long")
+		.regex(/^[A-Za-z0-9\s-]+$/, "Invalid postal code"),
 });
 
 export const VerifyOtpSchema = z.object({

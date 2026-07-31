@@ -28,7 +28,7 @@ export default function RegisterForm() {
 		mode: "onChange",
 		reValidateMode: "onChange",
 		defaultValues: {
-			full_name: "",
+			// full_name: "",
 			email: "",
 			phone_number: "",
 			password: "",
@@ -55,15 +55,13 @@ export default function RegisterForm() {
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 my-5">
 					{/* --------------------------------
-              EMAIL FIELD
+              Full name FIELD
 			  -------------------------------- */}
-					<FormField
+					{/* <FormField
 						control={form.control}
 						name="full_name"
 						render={({ field, fieldState }) => (
 							<FormItem>
-								{/* <FormLabel>Email</FormLabel> */}
-
 								<FormControl>
 									<InputField
 										{...field}
@@ -77,7 +75,7 @@ export default function RegisterForm() {
 								<FormMessage />
 							</FormItem>
 						)}
-					/>
+					/> */}
 					{/* --------------------------------
               EMAIL FIELD
 			  -------------------------------- */}
