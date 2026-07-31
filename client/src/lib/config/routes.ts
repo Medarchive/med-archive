@@ -14,7 +14,7 @@ export const pageRoutes = {
 		DASHBOARD: "/dashboard",
 		PROFILE: "/dashboard/profile",
 		CARE_ID: "/dashboard/care-id",
-		UPLOAD_RECORD: "/dashboard/upload-record",
+		RECORDS: "/dashboard/records",
 		PROVIDER_REQUEST: "/dashboard/provider-request",
 		MEDICAL_TIMELINE: "/dashboard/medical-timeline",
 		WALLET: "/dashboard/wallet",

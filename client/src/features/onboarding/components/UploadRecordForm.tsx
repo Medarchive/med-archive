@@ -44,7 +44,11 @@ const facilityOptions = [
 	{ label: "Other", value: "other" },
 ];
 
-export default function UploadRecordForm() {
+interface UploadRecordFormProps {
+	onSuccess?: () => void;
+}
+
+export default function UploadRecordForm({ onSuccess }: UploadRecordFormProps) {
 	const [isLoading, setIsLoading] = useState(false);
 	const [files, setFiles] = useState<File[]>([]);
 	const router = useRouter();
@@ -72,7 +76,12 @@ export default function UploadRecordForm() {
 		setTimeout(() => {
 			toast.success("Record uploaded successfully");
 			setIsLoading(false);
-			router.push(pageRoutes.HOME);
+
+			if (onSuccess) {
+				onSuccess();
+			} else {
+				router.push(pageRoutes.HOME);
+			}
 		}, 2000);
 	};
 

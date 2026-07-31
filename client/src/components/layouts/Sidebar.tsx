@@ -1,17 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { X } from "lucide-react";
-import {
-	LayoutGrid,
-	IdCard,
-	ShieldCheck,
-	Share2,
-	History,
-	Wallet,
-} from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { X, LogOut } from "lucide-react";
+import { LayoutGrid, IdCard, Folder, Share2, Wallet } from "lucide-react";
 import Logo from "../ui/custom/Logo";
+import ConfirmModal from "../ui/custom/ConfirmModal";
 import { useHeaderStore } from "@/lib/stores/header-store";
 import { pageRoutes } from "@/lib/config/routes";
 
@@ -19,26 +15,36 @@ const navItems = [
 	{ label: "Dashboard", href: pageRoutes.dashboardRoutes.DASHBOARD, icon: LayoutGrid },
 	{ label: "Care ID", href: pageRoutes.dashboardRoutes.CARE_ID, icon: IdCard },
 	{
-		label: "Upload Record",
-		href: pageRoutes.dashboardRoutes.UPLOAD_RECORD,
-		icon: ShieldCheck,
+		label: "Records",
+		href: pageRoutes.dashboardRoutes.RECORDS,
+		icon: Folder,
 	},
 	{
 		label: "Provider Request",
 		href: pageRoutes.dashboardRoutes.PROVIDER_REQUEST,
 		icon: Share2,
 	},
-	{
-		label: "Medical Timeline",
-		href: pageRoutes.dashboardRoutes.MEDICAL_TIMELINE,
-		icon: History,
-	},
+	// Medical Timeline is not ready yet — re-enable once the section is built.
+	// {
+	// 	label: "Medical Timeline",
+	// 	href: pageRoutes.dashboardRoutes.MEDICAL_TIMELINE,
+	// 	icon: History,
+	// },
 	{ label: "Wallet", href: pageRoutes.dashboardRoutes.WALLET, icon: Wallet },
 ];
 
 export default function Sidebar() {
 	const pathname = usePathname();
+	const router = useRouter();
 	const { isOpen, closeMenu } = useHeaderStore();
+	const [confirmLogout, setConfirmLogout] = useState(false);
+
+	const handleLogout = () => {
+		setConfirmLogout(false);
+		closeMenu();
+		toast.success("Logged out successfully");
+		router.push(pageRoutes.authRoutes.SIGN_IN);
+	};
 
 	return (
 		<>
@@ -90,7 +96,23 @@ export default function Sidebar() {
 						);
 					})}
 				</nav>
+
+				<button
+					type="button"
+					onClick={() => setConfirmLogout(true)}
+					className="flex items-center gap-3 rounded-[8px] px-3 py-2.5 text-sm text-error duration-150 hover:bg-error/5"
+				>
+					<LogOut className="size-4.5" />
+					Logout
+				</button>
 			</aside>
+
+			<ConfirmModal
+				open={confirmLogout}
+				message="Are you sure you want to log out?"
+				onConfirm={handleLogout}
+				onCancel={() => setConfirmLogout(false)}
+			/>
 		</>
 	);
 }

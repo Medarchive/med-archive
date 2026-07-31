@@ -90,7 +90,7 @@ export default function RecordsTable() {
 					))}
 				</div>
 
-				<Button href={pageRoutes.dashboardRoutes.UPLOAD_RECORD} size="sm">
+				<Button href={pageRoutes.dashboardRoutes.RECORDS} size="sm">
 					<Plus className="size-4" />
 					Add new
 				</Button>

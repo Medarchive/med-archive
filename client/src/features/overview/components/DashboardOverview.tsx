@@ -39,7 +39,7 @@ export default function DashboardOverview({
 					</p>
 				</div>
 
-				<Button href={pageRoutes.dashboardRoutes.UPLOAD_RECORD}>
+				<Button href={pageRoutes.dashboardRoutes.RECORDS}>
 					<Plus className="size-4" />
 					Upload Record
 				</Button>
