@@ -97,7 +97,7 @@ export default function RecordsTable() {
 			</div>
 
 			<div className="mt-4 overflow-x-auto">
-				<table className="w-full min-w-[420px] text-sm">
+				<table className="w-full min-w-105 text-sm">
 					<thead>
 						<tr className="text-left text-xs text-[#9B9B9B]">
 							<th className="pb-3 font-normal">{columns[0]}</th>

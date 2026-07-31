@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { pageRoutes } from "../../../lib/config/routes";
 
 const activities = [
 	{ label: "Blood Test Uploaded", date: "Today, 10:00AM" },
@@ -32,7 +33,7 @@ export default function RecentActivitiesCard() {
 			</div>
 
 			<Link
-				href="#"
+				href={pageRoutes.dashboardRoutes.MEDICAL_TIMELINE}
 				className="mt-4 self-end text-sm font-semibold text-primary hover:underline"
 			>
 				See all

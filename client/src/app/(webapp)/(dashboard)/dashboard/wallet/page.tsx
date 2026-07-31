@@ -1,5 +1,5 @@
-import ComingSoon from "../../../../../components/shared/ComingSoon";
+import WalletPage from "../../../../../features/wallet/components/WalletPage";
 
 export default function Page() {
-	return <ComingSoon title="Wallet" />;
+	return <WalletPage />;
 }

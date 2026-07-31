@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 // import { useRouter } from "next/navigation";
-// import { pageRoutes } from "../../../lib/config/routes";
+import { pageRoutes } from "../../../lib/config/routes";
 import { SignInSchema } from "../../../lib/validations/authValidations";
 import {
 	FormControl,
@@ -113,10 +113,18 @@ export default function LoginForm() {
 			</Form>
 
 			<div className="flex flex-col w-full gap-4">
-				<Button className="w-full" variant="ghost">
+				<Button
+					href={pageRoutes.authRoutes.FORGOT_PASSWORD}
+					className="w-full"
+					variant="ghost"
+				>
 					Forgot Password
 				</Button>
-				<Button className="w-full" variant="dark">
+				<Button
+					className="w-full"
+					variant="dark"
+					onClick={() => toast.message("Wallet connection coming soon")}
+				>
 					Connect Wallet
 				</Button>
 			</div>

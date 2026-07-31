@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { toast } from "sonner";
 import { Menu, Search, Bell, User, Wallet } from "lucide-react";
 import { useHeaderStore } from "@/lib/stores/header-store";
 import { pageRoutes } from "@/lib/config/routes";
@@ -35,13 +36,17 @@ export default function DashboardHeader({
 			</div>
 
 			<div className="ml-auto flex items-center gap-2 sm:gap-3">
-				<div className="hidden items-center gap-2 rounded-full border border-[#F5F5F5] px-3 py-2 text-sm font-medium sm:flex">
+				<Link
+					href={pageRoutes.dashboardRoutes.WALLET}
+					className="hidden items-center gap-2 rounded-full border border-[#F5F5F5] px-3 py-2 text-sm font-medium duration-150 hover:bg-[#FAFAFA] sm:flex"
+				>
 					<Wallet className="size-4 text-primary" />
 					{walletAddress}
-				</div>
+				</Link>
 
 				<button
 					type="button"
+					onClick={() => toast.message("No new notifications")}
 					className="flex size-10 items-center justify-center rounded-full border border-[#F5F5F5] text-gray-600 duration-150 hover:bg-[#FAFAFA]"
 				>
 					<Bell className="size-4.5" />

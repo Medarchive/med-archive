@@ -1,4 +1,5 @@
 import { Button } from "../../../components/ui/button";
+import { pageRoutes } from "../../../lib/config/routes";
 
 interface WalletBalanceCardProps {
 	balance: string;
@@ -14,7 +15,11 @@ export default function WalletBalanceCard({
 			<div className="flex items-start justify-between gap-2">
 				<p className="text-sm text-[#9B9B9B]">Wallet balance</p>
 
-				<Button size="sm" className="min-w-0">
+				<Button
+					href={pageRoutes.dashboardRoutes.WALLET}
+					size="sm"
+					className="min-w-0"
+				>
 					Add Funds
 				</Button>
 			</div>
