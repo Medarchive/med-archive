@@ -1,5 +1,5 @@
-import ComingSoon from "../../../../../components/shared/ComingSoon";
+import CareIdentityPage from "../../../../../features/care-id/components/CareIdentityPage";
 
 export default function Page() {
-	return <ComingSoon title="Care ID" />;
+	return <CareIdentityPage />;
 }

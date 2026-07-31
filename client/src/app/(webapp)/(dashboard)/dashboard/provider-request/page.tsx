@@ -1,5 +1,5 @@
-import ComingSoon from "../../../../../components/shared/ComingSoon";
+import ProviderRequestPage from "../../../../../features/provider-request/components/ProviderRequestPage";
 
 export default function Page() {
-	return <ComingSoon title="Provider Request" />;
+	return <ProviderRequestPage />;
 }
