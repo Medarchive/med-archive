@@ -1,68 +1,27 @@
-export type TransactionStatus = "approved" | "declined" | "pending";
+export type WalletNetwork = "MAINNET" | "TESTNET";
 
-export interface Transaction {
-	id: string;
-	transactionId: string;
-	type: string;
-	amount: string;
-	status: TransactionStatus;
+export interface WalletData {
+	address: string;
+	network: WalletNetwork;
+	label?: string | null;
+	balance: string | null; // null if the account is unfunded
+	verifiedAt?: string | null;
 }
 
-export const initialTransactions: Transaction[] = [
-	{
-		id: "1",
-		transactionId: "P2CXDOIM4333AUNCZ2NUA2EKV",
-		type: "Lab Request",
-		amount: "$10.45",
-		status: "approved",
-	},
-	{
-		id: "2",
-		transactionId: "P2CXDOIM4333AUNCZ2NUA2EKV",
-		type: "Lab Request",
-		amount: "$10.45",
-		status: "approved",
-	},
-	{
-		id: "3",
-		transactionId: "P2CXDOIM4333AUNCZ2NUA2EKV",
-		type: "Lab Request",
-		amount: "$10.45",
-		status: "approved",
-	},
-	{
-		id: "4",
-		transactionId: "P2CXDOIM4333AUNCZ2NUA2EKV",
-		type: "Lab Request",
-		amount: "$20.99",
-		status: "declined",
-	},
-	{
-		id: "5",
-		transactionId: "P2CXDOIM4333AUNCZ2NUA2EKV",
-		type: "Lab Request",
-		amount: "$10.45",
-		status: "approved",
-	},
-	{
-		id: "6",
-		transactionId: "P2CXDOIM4333AUNCZ2NUA2EKV",
-		type: "Lab Request",
-		amount: "$300.45",
-		status: "pending",
-	},
-	{
-		id: "7",
-		transactionId: "P2CXDOIM4333AUNCZ2NUA2EKV",
-		type: "Lab Request",
-		amount: "$10.45",
-		status: "approved",
-	},
-	{
-		id: "8",
-		transactionId: "P2CXDOIM4333AUNCZ2NUA2EKV",
-		type: "Deposit",
-		amount: "$300.00",
-		status: "approved",
-	},
-];
+export interface LinkWalletResponseData {
+	address: string;
+	network: WalletNetwork;
+	nonce: string;
+}
+
+// Exact per-transaction fields aren't documented in the OpenAPI spec — kept
+// loose and rendered defensively until a real response has been seen.
+export interface WalletTransaction {
+	id?: string;
+	hash?: string;
+	type?: string;
+	amount?: string | number;
+	status?: string;
+	createdAt?: string;
+	[key: string]: unknown;
+}

@@ -8,21 +8,22 @@ export const isStrongPassword = (password: string) => {
 };
 
 export const SignUpSchema = z.object({
+	full_name: z
+		.string()
+		.nonempty("Full name is required")
+		.trim()
+		.min(2, "Full name is too short")
+		.max(50, "Full name is too long"),
+
 	email: z
 		.string()
 		.nonempty("Email is required")
 		.email("Invalid email address"),
 
-	// full_name: z
-	// 	.string()
-	// 	.nonempty("Full name is required")
-	// 	.trim()
-	// 	.min(2, "Full name is too short")
-	// 	.max(50, "Full name is too long"),
-
+	// API requires minLength 8
 	password: z
 		.string()
-		.min(6, "Password must be at least 6 characters")
+		.min(8, "Password must be at least 8 characters")
 		.refine((v) => /[A-Z]/.test(v), "Must contain at least 1 uppercase letter")
 		.refine((v) => /[a-z]/.test(v), "Must contain at least 1 lowercase letter")
 		.refine((v) => /\d/.test(v), "Must contain at least 1 number")
@@ -42,24 +43,6 @@ export const SignUpSchema = z.object({
 		.max(15, "Phone number too long")
 		.optional()
 		.or(z.literal("")),
-
-	//   confirmPassword: z.string().nonempty("Please confirm your password"),
-	// })
-	// .refine((data) => data.password === data.confirmPassword, {
-	//   message: "Passwords do not match",
-	//   path: ["confirmPassword"],
-	// })
-
-	// // ❌ Password must NOT contain email
-	// .refine((data) => !data.password.includes(data.email), {
-	//   message: "Can't contain your email address",
-	//   path: ["password"], // attach error to password
-	// })
-
-	// // ❌ Passwords must match
-	// .refine((data) => data.password === data.confirmPassword, {
-	//   message: "Passwords do not match",
-	//   path: ["confirmPassword"],
 });
 
 export const PersonalInfoSchema = z.object({
@@ -127,11 +110,7 @@ export const PersonalInfoSchema = z.object({
 		.min(2, "Region/State is required")
 		.max(100, "Region is too long"),
 
-	country: z
-		.string()
-		.trim()
-		.min(2, "Country is required")
-		.max(100, "Country is too long"),
+	country: z.string().length(2, "Please select a country"),
 
 	postal_code: z
 		.string()

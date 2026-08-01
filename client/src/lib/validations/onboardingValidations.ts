@@ -28,24 +28,5 @@ export const MedicalHistorySchema = z.object({
 
 export type MedicalHistoryValues = z.infer<typeof MedicalHistorySchema>;
 
-export const UploadRecordSchema = z.object({
-	record_type: z.enum(
-		["lab_test_result", "prescription", "vaccination_record", "discharge_summary", "imaging_scan", "other"],
-		{ error: "Please select a record type" },
-	),
-
-	ordered_by: z.enum(["self", "doctor", "hospital_clinic", "other"], {
-		error: "Please select who ordered this",
-	}),
-
-	facility: z.string().nonempty("Please select a facility"),
-
-	description: z
-		.string()
-		.trim()
-		.max(500, "Description is too long")
-		.optional()
-		.or(z.literal("")),
-});
-
-export type UploadRecordValues = z.infer<typeof UploadRecordSchema>;
+// Record upload validation now lives in recordsValidations.ts
+// (CreateHealthRecordSchema), matching the real health-records API.

@@ -4,8 +4,6 @@ import InputField from "../../../components/ui/custom/InputField";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
-// import { useRouter } from "next/navigation";
 import { pageRoutes } from "../../../lib/config/routes";
 import { SignInSchema } from "../../../lib/validations/authValidations";
 import {
@@ -15,13 +13,13 @@ import {
 	FormMessage,
 	Form,
 } from "../../../components/ui/form";
-import { toast } from "sonner";
+import { useLogin, useWalletLogin } from "../hooks";
 
 type SignInValues = z.infer<typeof SignInSchema>;
 
 export default function LoginForm() {
-	const [isLoading, setIsLoading] = useState(false);
-	// const router = useRouter();
+	const { mutate: login, isPending } = useLogin();
+	const { mutate: loginWithWallet, isPending: isConnectingWallet } = useWalletLogin();
 
 	const form = useForm<SignInValues>({
 		resolver: zodResolver(SignInSchema),
@@ -38,14 +36,7 @@ export default function LoginForm() {
 	} = form;
 
 	const onSubmit = (values: SignInValues) => {
-		console.log(values);
-		setIsLoading(true);
-
-		setTimeout(() => {
-			toast.success("Login Successful");
-			setIsLoading(false);
-			// router.push("/");
-		}, 2000);
+		login(values);
 	};
 
 	return (
@@ -60,8 +51,6 @@ export default function LoginForm() {
 						name="email"
 						render={({ field, fieldState }) => (
 							<FormItem>
-								{/* <FormLabel>Email</FormLabel> */}
-
 								<FormControl>
 									<InputField
 										{...field}
@@ -84,8 +73,6 @@ export default function LoginForm() {
 						name="password"
 						render={({ field, fieldState }) => (
 							<FormItem>
-								{/* <FormLabel>Email</FormLabel> */}
-
 								<FormControl>
 									<InputField
 										{...field}
@@ -103,7 +90,7 @@ export default function LoginForm() {
 
 					<Button
 						type="submit"
-						isLoading={isLoading}
+						isLoading={isPending}
 						disabled={!isValid || isSubmitting}
 						className="w-full mt-4"
 					>
@@ -123,7 +110,8 @@ export default function LoginForm() {
 				<Button
 					className="w-full"
 					variant="dark"
-					onClick={() => toast.message("Wallet connection coming soon")}
+					isLoading={isConnectingWallet}
+					onClick={() => loginWithWallet()}
 				>
 					Connect Wallet
 				</Button>

@@ -1,9 +1,9 @@
 import Modal from "../../../components/ui/custom/Modal";
-import { Transaction } from "../types";
+import { WalletTransaction } from "../types";
 import TransactionStatusBadge from "./TransactionStatusBadge";
 
 interface TransactionDetailModalProps {
-	transaction: Transaction | null;
+	transaction: WalletTransaction | null;
 	onClose: () => void;
 }
 
@@ -18,18 +18,22 @@ export default function TransactionDetailModal({
 					<div className="flex items-start justify-between gap-4">
 						<p className="text-sm font-semibold">Transaction ID</p>
 						<p className="max-w-55 text-right text-sm text-[#9B9B9B] break-all">
-							{transaction.transactionId}
+							{transaction.id ?? transaction.hash ?? "—"}
 						</p>
 					</div>
 
 					<div className="flex items-center justify-between gap-4">
-						<p className="text-sm font-semibold">Transaction type</p>
-						<p className="text-sm text-[#9B9B9B]">{transaction.type}</p>
+						<p className="text-sm font-semibold">Type</p>
+						<p className="text-sm text-[#9B9B9B]">{transaction.type ?? "—"}</p>
 					</div>
 
 					<div className="flex items-center justify-between gap-4">
 						<p className="text-sm font-semibold">Amount</p>
-						<p className="text-sm text-[#9B9B9B]">{transaction.amount}</p>
+						<p className="text-sm text-[#9B9B9B]">
+							{transaction.amount !== undefined
+								? `${transaction.amount} XLM`
+								: "—"}
+						</p>
 					</div>
 
 					<div className="flex items-center justify-between gap-4">

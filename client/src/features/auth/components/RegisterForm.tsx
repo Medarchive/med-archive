@@ -1,11 +1,10 @@
 "use client";
+
 import { Button } from "../../../components/ui/button";
 import InputField from "../../../components/ui/custom/InputField";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { SignUpSchema } from "../../../lib/validations/authValidations";
 import {
 	FormControl,
@@ -14,21 +13,19 @@ import {
 	FormMessage,
 	Form,
 } from "../../../components/ui/form";
-import { toast } from "sonner";
-import { pageRoutes } from "../../../lib/config/routes";
+import { useRegister } from "../hooks";
 
 type SignUpValues = z.infer<typeof SignUpSchema>;
 
 export default function RegisterForm() {
-	const [isLoading, setIsLoading] = useState(false);
-	const router = useRouter();
+	const { mutate: register, isPending } = useRegister();
 
 	const form = useForm<SignUpValues>({
 		resolver: zodResolver(SignUpSchema),
 		mode: "onChange",
 		reValidateMode: "onChange",
 		defaultValues: {
-			// full_name: "",
+			full_name: "",
 			email: "",
 			phone_number: "",
 			password: "",
@@ -40,14 +37,13 @@ export default function RegisterForm() {
 	} = form;
 
 	const onSubmit = (values: SignUpValues) => {
-		console.log(values);
-		setIsLoading(true);
-
-		setTimeout(() => {
-			toast.success("Submitted Successfully");
-			setIsLoading(false);
-			router.push(pageRoutes.authRoutes.VERIFY_OTP(values.email));
-		}, 2000);
+		register({
+			fullName: values.full_name,
+			email: values.email,
+			phone: values.phone_number || undefined,
+			password: values.password,
+			role: "PATIENT",
+		});
 	};
 
 	return (
@@ -55,9 +51,9 @@ export default function RegisterForm() {
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 my-5">
 					{/* --------------------------------
-              Full name FIELD
+              FULL NAME FIELD
 			  -------------------------------- */}
-					{/* <FormField
+					<FormField
 						control={form.control}
 						name="full_name"
 						render={({ field, fieldState }) => (
@@ -75,7 +71,7 @@ export default function RegisterForm() {
 								<FormMessage />
 							</FormItem>
 						)}
-					/> */}
+					/>
 					{/* --------------------------------
               EMAIL FIELD
 			  -------------------------------- */}
@@ -84,8 +80,6 @@ export default function RegisterForm() {
 						name="email"
 						render={({ field, fieldState }) => (
 							<FormItem>
-								{/* <FormLabel>Email</FormLabel> */}
-
 								<FormControl>
 									<InputField
 										{...field}
@@ -101,15 +95,13 @@ export default function RegisterForm() {
 						)}
 					/>
 					{/* --------------------------------
-              EMAIL FIELD
+              PHONE NUMBER FIELD
 			  -------------------------------- */}
 					<FormField
 						control={form.control}
 						name="phone_number"
 						render={({ field, fieldState }) => (
 							<FormItem>
-								{/* <FormLabel>Email</FormLabel> */}
-
 								<FormControl>
 									<InputField
 										{...field}
@@ -132,8 +124,6 @@ export default function RegisterForm() {
 						name="password"
 						render={({ field, fieldState }) => (
 							<FormItem>
-								{/* <FormLabel>Email</FormLabel> */}
-
 								<FormControl>
 									<InputField
 										{...field}
@@ -151,7 +141,7 @@ export default function RegisterForm() {
 
 					<Button
 						type="submit"
-						isLoading={isLoading}
+						isLoading={isPending}
 						disabled={!isValid || isSubmitting}
 						className="w-full mt-4"
 					>
@@ -159,13 +149,6 @@ export default function RegisterForm() {
 					</Button>
 				</form>
 			</Form>
-
-			{/* <div className="flex flex-col w-full gap-4">
-				<div className="text-center text-primary font-semibold my-1">Or</div>
-				<Button className="w-full" variant="dark">
-					Connect Wallet
-				</Button>
-			</div> */}
 		</div>
 	);
 }

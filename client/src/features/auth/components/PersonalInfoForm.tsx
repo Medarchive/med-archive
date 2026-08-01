@@ -7,8 +7,6 @@ import DateField from "../../../components/ui/custom/DateField";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { PersonalInfoSchema } from "../../../lib/validations/authValidations";
 import { country } from "../../../lib/utils/countries";
 import {
@@ -18,16 +16,17 @@ import {
 	FormMessage,
 	Form,
 } from "../../../components/ui/form";
-import { toast } from "sonner";
-import { pageRoutes } from "../../../lib/config/routes";
+import {
+	useCreatePersonalInfo,
+	toPersonalInfoPayload,
+} from "../../personal-info/hooks";
 
 type PersonalInfoValues = z.infer<typeof PersonalInfoSchema>;
 
-const countryOptions = country.map((c) => ({ label: c.name, value: c.name }));
+const countryOptions = country.map((c) => ({ label: c.name, value: c.code }));
 
 export default function PersonalInfoForm() {
-	const [isLoading, setIsLoading] = useState(false);
-	const router = useRouter();
+	const { mutate: createPersonalInfo, isPending } = useCreatePersonalInfo();
 
 	const form = useForm<PersonalInfoValues>({
 		resolver: zodResolver(PersonalInfoSchema),
@@ -45,7 +44,7 @@ export default function PersonalInfoForm() {
 			address_line_2: "",
 			city: "",
 			state: "",
-			country: "Nigeria",
+			country: "NG",
 			postal_code: "",
 		},
 	});
@@ -55,14 +54,7 @@ export default function PersonalInfoForm() {
 	} = form;
 
 	const onSubmit = (values: PersonalInfoValues) => {
-		console.log(values);
-		setIsLoading(true);
-
-		setTimeout(() => {
-			toast.success("Submitted Successfully");
-			setIsLoading(false);
-			router.push(pageRoutes.authRoutes.MEDICAL_HISTORY);
-		}, 2000);
+		createPersonalInfo(toPersonalInfoPayload(values));
 	};
 
 	return (
@@ -343,7 +335,7 @@ export default function PersonalInfoForm() {
 
 					<Button
 						type="submit"
-						isLoading={isLoading}
+						isLoading={isPending}
 						disabled={!isValid || isSubmitting}
 						className="w-full mt-4"
 					>

@@ -6,6 +6,26 @@ export const getFlagEmoji = (countryCode: string) => {
 		);
 };
 
+// Splits a combined intl phone string (e.g. "+2348012345678") back into a
+// dial code + local number for prefilling the PhoneField. Matches the
+// longest dial code first so "+1" doesn't shadow "+234" etc.
+export const splitPhoneNumber = (phone: string) => {
+	if (!phone) return { dial_code: "+234", phone_number: "" };
+
+	const match = [...country]
+		.sort((a, b) => b.dial_code.length - a.dial_code.length)
+		.find((c) => phone.startsWith(c.dial_code));
+
+	if (!match) {
+		return { dial_code: "+234", phone_number: phone.replace(/^\+/, "") };
+	}
+
+	return {
+		dial_code: match.dial_code,
+		phone_number: phone.slice(match.dial_code.length),
+	};
+};
+
 export const country = [
 	{ name: "Afghanistan", code: "AF", iso3: "AFG", dial_code: "+93" },
 	{ name: "Albania", code: "AL", iso3: "ALB", dial_code: "+355" },

@@ -4,9 +4,9 @@ import SharedStatusBadge, {
 import { RequestStatus } from "../types";
 
 const statusConfig: Record<RequestStatus, { label: string; variant: BadgeVariant }> = {
-	approved: { label: "Approved", variant: "success" },
-	declined: { label: "Declined", variant: "error" },
-	pending: { label: "Pending", variant: "warning" },
+	APPROVED: { label: "Approved", variant: "success" },
+	DECLINED: { label: "Declined", variant: "error" },
+	PENDING: { label: "Pending", variant: "warning" },
 };
 
 export default function StatusBadge({ status }: { status: RequestStatus }) {

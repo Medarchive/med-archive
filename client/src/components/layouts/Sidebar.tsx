@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { usePathname } from "next/navigation";
 import { X, LogOut } from "lucide-react";
 import { LayoutGrid, IdCard, Folder, Share2, Wallet } from "lucide-react";
 import Logo from "../ui/custom/Logo";
 import ConfirmModal from "../ui/custom/ConfirmModal";
 import { useHeaderStore } from "@/lib/stores/header-store";
 import { pageRoutes } from "@/lib/config/routes";
+import { useLogoutMutation } from "../../features/auth/hooks";
 
 const navItems = [
 	{ label: "Dashboard", href: pageRoutes.dashboardRoutes.DASHBOARD, icon: LayoutGrid },
@@ -35,15 +35,13 @@ const navItems = [
 
 export default function Sidebar() {
 	const pathname = usePathname();
-	const router = useRouter();
 	const { isOpen, closeMenu } = useHeaderStore();
 	const [confirmLogout, setConfirmLogout] = useState(false);
+	const { mutate: logout, isPending: isLoggingOut } = useLogoutMutation();
 
 	const handleLogout = () => {
-		setConfirmLogout(false);
 		closeMenu();
-		toast.success("Logged out successfully");
-		router.push(pageRoutes.authRoutes.SIGN_IN);
+		logout();
 	};
 
 	return (
@@ -112,6 +110,7 @@ export default function Sidebar() {
 				message="Are you sure you want to log out?"
 				onConfirm={handleLogout}
 				onCancel={() => setConfirmLogout(false)}
+				isLoading={isLoggingOut}
 			/>
 		</>
 	);

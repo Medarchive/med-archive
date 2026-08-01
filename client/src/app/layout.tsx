@@ -3,6 +3,8 @@ import { Mulish } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "../components/ui/sonner";
+import ReactQueryProvider from "../components/providers/ReactQueryProvider";
+import AuthProvider from "../components/providers/AuthProvider";
 
 const mulish = Mulish({
 	variable: "--font-sans",
@@ -92,7 +94,9 @@ export default function RootLayout({
 			className={cn("h-full", "antialiased", mulish.variable, "font-sans")}
 		>
 			<body className="min-h-full">
-				{children}
+				<ReactQueryProvider>
+					<AuthProvider>{children}</AuthProvider>
+				</ReactQueryProvider>
 
 				<Toaster richColors position="top-right" theme="light" />
 			</body>

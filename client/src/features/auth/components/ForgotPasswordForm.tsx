@@ -13,13 +13,13 @@ import {
 	FormMessage,
 	Form,
 } from "../../../components/ui/form";
-import { toast } from "sonner";
+import { useForgotPassword } from "../hooks";
 
 type ForgotPasswordValues = z.infer<typeof ForgotPasswordSchema>;
 
 export default function ForgotPasswordForm() {
-	const [isLoading, setIsLoading] = useState(false);
 	const [sent, setSent] = useState(false);
+	const { mutate: forgotPassword, isPending } = useForgotPassword();
 
 	const form = useForm<ForgotPasswordValues>({
 		resolver: zodResolver(ForgotPasswordSchema),
@@ -35,14 +35,9 @@ export default function ForgotPasswordForm() {
 	} = form;
 
 	const onSubmit = (values: ForgotPasswordValues) => {
-		console.log(values);
-		setIsLoading(true);
-
-		setTimeout(() => {
-			toast.success("Password reset link sent");
-			setIsLoading(false);
-			setSent(true);
-		}, 2000);
+		forgotPassword(values, {
+			onSuccess: () => setSent(true),
+		});
 	};
 
 	if (sent) {
@@ -83,7 +78,7 @@ export default function ForgotPasswordForm() {
 
 					<Button
 						type="submit"
-						isLoading={isLoading}
+						isLoading={isPending}
 						disabled={!isValid || isSubmitting}
 						className="w-full mt-4"
 					>

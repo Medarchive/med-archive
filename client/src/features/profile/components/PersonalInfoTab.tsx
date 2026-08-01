@@ -1,10 +1,9 @@
 /* eslint-disable react-hooks/incompatible-library */
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import InputField from "../../../components/ui/custom/InputField";
 import SelectField from "../../../components/ui/custom/SelectField";
 import PhoneField from "../../../components/ui/custom/PhoneField";
@@ -17,37 +16,68 @@ import {
 	FormMessage,
 } from "../../../components/ui/form";
 import { PersonalInfoSchema } from "../../../lib/validations/authValidations";
-import { country } from "../../../lib/utils/countries";
+import { country, splitPhoneNumber } from "../../../lib/utils/countries";
+import {
+	usePersonalInfo,
+	useUpdatePersonalInfo,
+	toPersonalInfoPayload,
+} from "../../personal-info/hooks";
 import ProfileFormFooter from "./ProfileFormFooter";
+import ProfileSkeleton from "../../../components/shared/skeletons/ProfileSkeleton";
 
 type PersonalInfoValues = z.infer<typeof PersonalInfoSchema>;
 
-const countryOptions = country.map((c) => ({ label: c.name, value: c.name }));
+const countryOptions = country.map((c) => ({ label: c.name, value: c.code }));
+
+const emptyDefaults: PersonalInfoValues = {
+	first_name: "",
+	middle_name: "",
+	last_name: "",
+	gender: "male",
+	dial_code: "+234",
+	phone_number: "",
+	date_of_birth: "",
+	address_line_1: "",
+	address_line_2: "",
+	city: "",
+	state: "",
+	country: "NG",
+	postal_code: "",
+};
 
 export default function PersonalInfoTab() {
 	const [isEditing, setIsEditing] = useState(false);
-	const [isLoading, setIsLoading] = useState(false);
+	const { data: personalInfo, isLoading } = usePersonalInfo();
+	const { mutate: updatePersonalInfo, isPending } = useUpdatePersonalInfo();
 
 	const form = useForm<PersonalInfoValues>({
 		resolver: zodResolver(PersonalInfoSchema),
 		mode: "onChange",
 		reValidateMode: "onChange",
-		defaultValues: {
-			first_name: "Anthony",
-			middle_name: "James",
-			last_name: "Timothy",
-			gender: "male",
-			dial_code: "+234",
-			phone_number: "8012345678",
-			date_of_birth: "1991-05-14",
-			address_line_1: "5, oleh street,",
-			address_line_2: "55 Bazuma layout",
-			city: "Eko",
-			state: "Lagos",
-			country: "Nigeria",
-			postal_code: "210001",
-		},
+		defaultValues: emptyDefaults,
 	});
+
+	useEffect(() => {
+		if (!personalInfo) return;
+
+		const { dial_code, phone_number } = splitPhoneNumber(personalInfo.phone);
+
+		form.reset({
+			first_name: personalInfo.firstName,
+			middle_name: personalInfo.middleName ?? "",
+			last_name: personalInfo.lastName,
+			gender: personalInfo.gender === "MALE" ? "male" : "female",
+			dial_code,
+			phone_number,
+			date_of_birth: personalInfo.dateOfBirth,
+			address_line_1: personalInfo.addressLine1,
+			address_line_2: personalInfo.addressLine2 ?? "",
+			city: personalInfo.city,
+			state: personalInfo.region,
+			country: personalInfo.country,
+			postal_code: personalInfo.postcode,
+		});
+	}, [personalInfo, form]);
 
 	const {
 		formState: { isValid, isSubmitting },
@@ -56,15 +86,14 @@ export default function PersonalInfoTab() {
 	const disabled = !isEditing;
 
 	const onSubmit = (values: PersonalInfoValues) => {
-		console.log(values);
-		setIsLoading(true);
-
-		setTimeout(() => {
-			toast.success("Profile updated successfully");
-			setIsLoading(false);
-			setIsEditing(false);
-		}, 1500);
+		updatePersonalInfo(toPersonalInfoPayload(values), {
+			onSuccess: () => setIsEditing(false),
+		});
 	};
+
+	if (isLoading) {
+		return <ProfileSkeleton />;
+	}
 
 	return (
 		<Form {...form}>
@@ -348,7 +377,7 @@ export default function PersonalInfoTab() {
 				<ProfileFormFooter
 					isEditing={isEditing}
 					onEdit={() => setIsEditing(true)}
-					isLoading={isLoading}
+					isLoading={isPending}
 					disabled={disabled || !isValid || isSubmitting}
 				/>
 			</form>

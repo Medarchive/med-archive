@@ -16,13 +16,15 @@ import {
 	FormMessage,
 	Form,
 } from "../../../components/ui/form";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { pageRoutes } from "../../../lib/config/routes";
+import { useValidateOtp, useResendOtp } from "../hooks";
 
-export default function VerifyOtpForm() {
-	const [isLoading, setIsLoading] = useState(false);
-	const router = useRouter();
+interface VerifyOtpFormProps {
+	email: string;
+}
+
+export default function VerifyOtpForm({ email }: VerifyOtpFormProps) {
+	const { mutate: validateOtp, isPending } = useValidateOtp();
+	const { mutate: resendOtp, isPending: isResending } = useResendOtp();
 
 	// 2 minute countdown
 	const [timeLeft, setTimeLeft] = useState(120);
@@ -58,26 +60,18 @@ export default function VerifyOtpForm() {
 	};
 
 	const handleResend = () => {
-		if (timeLeft > 0) return;
+		if (timeLeft > 0 || isResending) return;
 
-		// Call your resend OTP API here
-
-		toast.success("OTP resent successfully");
-
-		// Restart timer
-		setTimeLeft(120);
+		resendOtp(
+			{ email },
+			{
+				onSuccess: () => setTimeLeft(120),
+			},
+		);
 	};
 
 	const onSubmit = (values: VerifyOtpValues) => {
-		console.log(values);
-
-		setIsLoading(true);
-
-		setTimeout(() => {
-			toast.success("Verification Successful");
-			setIsLoading(false);
-			router.push(pageRoutes.authRoutes.PERSONAL_INFO);
-		}, 2000);
+		validateOtp({ email, otp: values.otp });
 	};
 
 	return (
@@ -106,7 +100,7 @@ export default function VerifyOtpForm() {
 
 					<Button
 						type="submit"
-						isLoading={isLoading}
+						isLoading={isPending}
 						disabled={!isValid || isSubmitting}
 						className="w-full mt-4"
 					>
@@ -122,9 +116,9 @@ export default function VerifyOtpForm() {
 					<button
 						type="button"
 						onClick={handleResend}
-						disabled={timeLeft > 0}
+						disabled={timeLeft > 0 || isResending}
 						className={`font-semibold ${
-							timeLeft > 0
+							timeLeft > 0 || isResending
 								? "text-[#9B9B9B] cursor-not-allowed"
 								: "text-primary hover:underline"
 						}`}

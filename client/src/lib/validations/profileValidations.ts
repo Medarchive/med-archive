@@ -1,14 +1,22 @@
 import { z } from "zod";
 
 export const EmergencyContactSchema = z.object({
-	emergency_contact_name: z
+	first_name: z
 		.string()
 		.trim()
-		.min(2, "Full name is too short")
-		.max(100, "Full name is too long"),
+		.min(2, "First name is too short")
+		.max(50, "First name is too long"),
 
+	last_name: z
+		.string()
+		.trim()
+		.min(2, "Last name is too short")
+		.max(50, "Last name is too long"),
+
+	// API models this as a free-text field ("e.g. Mother") — the select
+	// below just guides input, the values submitted are the display text.
 	relationship: z.enum(
-		["brother", "sister", "parent", "spouse", "friend", "other"],
+		["Brother", "Sister", "Parent", "Spouse", "Friend", "Other"],
 		{ error: "Please select a relationship" },
 	),
 

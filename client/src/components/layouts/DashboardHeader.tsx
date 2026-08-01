@@ -1,19 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { toast } from "sonner";
-import { Menu, Search, Bell, User, Wallet } from "lucide-react";
+import { Menu, Search, User, Wallet } from "lucide-react";
 import { useHeaderStore } from "@/lib/stores/header-store";
 import { pageRoutes } from "@/lib/config/routes";
+import { useWallet } from "../../features/wallet/hooks";
+import NotificationsPanel from "../../features/notifications/components/NotificationsPanel";
 
-interface DashboardHeaderProps {
-	walletAddress?: string;
-}
+const truncateAddress = (address: string) =>
+	address.length > 10 ? `${address.slice(0, 4)}...${address.slice(-4)}` : address;
 
-export default function DashboardHeader({
-	walletAddress = "GDXT...6WGG",
-}: DashboardHeaderProps) {
+export default function DashboardHeader() {
 	const { openMenu } = useHeaderStore();
+	const { data: wallet } = useWallet();
 
 	return (
 		<header className="sticky top-0 z-30 flex items-center gap-3 border-b border-[#F5F5F5] bg-white px-4 py-4 md:px-8">
@@ -36,21 +35,17 @@ export default function DashboardHeader({
 			</div>
 
 			<div className="ml-auto flex items-center gap-2 sm:gap-3">
-				<Link
-					href={pageRoutes.dashboardRoutes.WALLET}
-					className="hidden items-center gap-2 rounded-full border border-[#F5F5F5] px-3 py-2 text-sm font-medium duration-150 hover:bg-[#FAFAFA] sm:flex"
-				>
-					<Wallet className="size-4 text-primary" />
-					{walletAddress}
-				</Link>
+				{wallet && (
+					<Link
+						href={pageRoutes.dashboardRoutes.WALLET}
+						className="hidden items-center gap-2 rounded-full border border-[#F5F5F5] px-3 py-2 text-sm font-medium duration-150 hover:bg-[#FAFAFA] sm:flex"
+					>
+						<Wallet className="size-4 text-primary" />
+						{truncateAddress(wallet.address)}
+					</Link>
+				)}
 
-				<button
-					type="button"
-					onClick={() => toast.message("No new notifications")}
-					className="flex size-10 items-center justify-center rounded-full border border-[#F5F5F5] text-gray-600 duration-150 hover:bg-[#FAFAFA]"
-				>
-					<Bell className="size-4.5" />
-				</button>
+				<NotificationsPanel />
 
 				<Link
 					href={pageRoutes.dashboardRoutes.PROFILE}

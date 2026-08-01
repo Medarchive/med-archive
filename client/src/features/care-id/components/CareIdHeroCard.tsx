@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Copy, Check, QrCode, Download, Share2 } from "lucide-react";
+import { useGenerateShareLink } from "../hooks";
 
 interface CareIdHeroCardProps {
 	careId: string;
@@ -18,6 +19,8 @@ export default function CareIdHeroCard({
 	createdDate,
 }: CareIdHeroCardProps) {
 	const [copied, setCopied] = useState(false);
+	const { mutate: generateShareLink, isPending: isSharing } =
+		useGenerateShareLink();
 
 	const handleCopyId = async () => {
 		await navigator.clipboard.writeText(careId);
@@ -26,11 +29,14 @@ export default function CareIdHeroCard({
 		setTimeout(() => setCopied(false), 1500);
 	};
 
-	const handleShareLink = async () => {
-		await navigator.clipboard.writeText(
-			`${window.location.origin}/care-id/${careId}`,
-		);
-		toast.success("Secure link copied to clipboard");
+	const handleShareLink = () => {
+		generateShareLink(undefined, {
+			onSuccess: async (data) => {
+				const url = `${window.location.origin}/care-id/view/${data.data.token}`;
+				await navigator.clipboard.writeText(url);
+				toast.success("Secure link copied — expires in 24 hours");
+			},
+		});
 	};
 
 	const handleDownloadQr = () => {
@@ -90,10 +96,11 @@ export default function CareIdHeroCard({
 					<button
 						type="button"
 						onClick={handleShareLink}
-						className="flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-medium transition hover:bg-black/5"
+						disabled={isSharing}
+						className="flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-medium transition hover:bg-black/5 disabled:opacity-60"
 					>
 						<Share2 className="size-3.5" />
-						Share Link
+						{isSharing ? "Generating..." : "Share Link"}
 					</button>
 				</div>
 			</div>

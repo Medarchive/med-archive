@@ -1,43 +1,48 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "../../../components/ui/button";
 import Pagination from "../../../components/shared/Pagination";
-import { ProviderRequest, RequestStatus } from "../types";
+import { AccessRequestData } from "../types";
 import StatusBadge from "./StatusBadge";
 
 interface ProviderRequestTableProps {
-	requests: ProviderRequest[];
-	onRowClick: (request: ProviderRequest) => void;
+	requests: AccessRequestData[];
+	currentPage: number;
+	totalPages: number;
+	onPageChange: (page: number) => void;
+	onRowClick: (request: AccessRequestData) => void;
 	onDecision: (id: string, approved: boolean) => void;
+	isResponding: boolean;
 }
-
-const PAGE_SIZE = 8;
 
 const getInitials = (name: string) =>
 	name.replace(/^Dr\.\s*/i, "").slice(0, 2).toUpperCase();
 
+const formatDate = (value?: string | null) => {
+	if (!value) return "—";
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return value;
+	return date.toLocaleDateString();
+};
+
 export default function ProviderRequestTable({
 	requests,
+	currentPage,
+	totalPages,
+	onPageChange,
 	onRowClick,
 	onDecision,
+	isResponding,
 }: ProviderRequestTableProps) {
-	const [currentPage, setCurrentPage] = useState(1);
-	const totalPages = Math.max(1, Math.ceil(requests.length / PAGE_SIZE));
-	const visibleRequests = requests.slice(
-		(currentPage - 1) * PAGE_SIZE,
-		currentPage * PAGE_SIZE,
-	);
-
 	return (
 		<div className="rounded-[12px] border border-[#F5F5F5] bg-white p-5">
 			<div className="overflow-x-auto">
 				<table className="w-full min-w-180 text-sm">
 					<thead>
 						<tr className="text-left text-xs text-[#9B9B9B]">
-							<th className="pb-3 font-normal">Provides Name</th>
+							<th className="pb-3 font-normal">Provider Name</th>
 							<th className="pb-3 font-normal">Request</th>
-							<th className="pb-3 font-normal">Hospital</th>
+							<th className="pb-3 font-normal">Organization</th>
 							<th className="pb-3 font-normal">Note</th>
 							<th className="pb-3 font-normal">Date</th>
 							<th className="pb-3 font-normal">Status</th>
@@ -45,7 +50,7 @@ export default function ProviderRequestTable({
 					</thead>
 
 					<tbody className="divide-y divide-[#F5F5F5]">
-						{visibleRequests.map((request) => (
+						{requests.map((request) => (
 							<tr
 								key={request.id}
 								onClick={() => onRowClick(request)}
@@ -60,23 +65,28 @@ export default function ProviderRequestTable({
 									</div>
 								</td>
 
-								<td className="py-3 text-[#9B9B9B]">{request.request}</td>
-								<td className="py-3 text-[#9B9B9B]">{request.hospital}</td>
-
-								<td className="max-w-50 truncate py-3 text-[#9B9B9B]">
-									{request.note}
+								<td className="py-3 text-[#9B9B9B]">{request.requestType}</td>
+								<td className="py-3 text-[#9B9B9B]">
+									{request.organizationName ?? "—"}
 								</td>
 
-								<td className="py-3 text-[#9B9B9B]">{request.date}</td>
+								<td className="max-w-50 truncate py-3 text-[#9B9B9B]">
+									{request.note ?? "—"}
+								</td>
+
+								<td className="py-3 text-[#9B9B9B]">
+									{formatDate(request.requestedAt)}
+								</td>
 
 								<td className="py-3">
-									{request.status === "pending" ? (
+									{request.status === "PENDING" ? (
 										<div
 											className="flex gap-2"
 											onClick={(e) => e.stopPropagation()}
 										>
 											<Button
 												size="sm"
+												isLoading={isResponding}
 												onClick={() => onDecision(request.id, true)}
 											>
 												Approve
@@ -85,13 +95,14 @@ export default function ProviderRequestTable({
 											<Button
 												size="sm"
 												variant="destructive"
+												isLoading={isResponding}
 												onClick={() => onDecision(request.id, false)}
 											>
 												Decline
 											</Button>
 										</div>
 									) : (
-										<StatusBadge status={request.status as RequestStatus} />
+										<StatusBadge status={request.status} />
 									)}
 								</td>
 							</tr>
@@ -104,7 +115,7 @@ export default function ProviderRequestTable({
 				<Pagination
 					currentPage={currentPage}
 					totalPages={totalPages}
-					onPageChange={setCurrentPage}
+					onPageChange={onPageChange}
 				/>
 			</div>
 		</div>

@@ -1,112 +1,85 @@
-export type RecordType = "lab_report" | "allergies" | "medication" | "prescription";
+export type RecordType =
+	| "BLOOD_TEST"
+	| "LAB_TEST"
+	| "PRESCRIPTION"
+	| "MEDICATION"
+	| "ALLERGY"
+	| "SCAN"
+	| "REPORT"
+	| "OTHER";
+
+export type AllergyType =
+	| "FOOD"
+	| "DRUG"
+	| "ENVIRONMENTAL"
+	| "INSECT"
+	| "LATEX"
+	| "OTHER";
+
+export type ProofStatus = "PENDING" | "VERIFIED" | "FAILED";
+
+export interface RecordFile {
+	id: string;
+	url: string;
+}
+
+export interface HealthRecordData {
+	id: string;
+	title: string;
+	recordType: RecordType;
+	recordDate?: string | null;
+	description?: string | null;
+	files: RecordFile[];
+	createdAt: string;
+	updatedAt: string;
+	// Type-specific fields — present depending on `recordType`.
+	testName?: string;
+	referredBy?: string;
+	prescribedBy?: string;
+	drugClass?: string;
+	drug?: string;
+	dosage?: string;
+	frequency?: string;
+	endDate?: string | null;
+	allergyType?: AllergyType;
+	cause?: string;
+	management?: string;
+}
+
+export interface RecordProofData {
+	proofStatus: ProofStatus;
+	proofHash?: string;
+	generatedAt?: string;
+}
 
 export interface FieldConfig {
 	key: string;
 	label: string;
 }
 
-export interface LabReportRecord {
-	id: string;
-	type: "lab_report";
-	testName: string;
-	referredBy: string;
-	facility: string;
-	date: string;
-	zkProof: "verified" | "unverified";
-}
-
-export interface AllergyRecord {
-	id: string;
-	type: "allergies";
-	allergyType: string;
-	cause: string;
-	management: string;
-}
-
-export interface MedicationRecord {
-	id: string;
-	type: "medication";
-	drug: string;
-	dosage: string;
-	date: string;
-}
-
-export interface PrescriptionRecord {
-	id: string;
-	type: "prescription";
-	drugClass: string;
-	prescribedBy: string;
-	date: string;
-}
-
-export type AnyRecord =
-	| LabReportRecord
-	| AllergyRecord
-	| MedicationRecord
-	| PrescriptionRecord;
-
+// The "primary" type-specific field shown as the second table column and
+// modal detail for each record type, plus the tab label.
 export const recordTypeConfig: Record<
 	RecordType,
-	{ tabLabel: string; columns: FieldConfig[] }
+	{ tabLabel: string; primaryField?: FieldConfig }
 > = {
-	lab_report: {
-		tabLabel: "Lab Report",
-		columns: [
-			{ key: "testName", label: "Test Name" },
-			{ key: "referredBy", label: "Referred by" },
-			{ key: "facility", label: "Facility" },
-		],
-	},
-	allergies: {
-		tabLabel: "Allergies",
-		columns: [
-			{ key: "allergyType", label: "Allergy Type" },
-			{ key: "cause", label: "Cause" },
-			{ key: "management", label: "Management" },
-		],
-	},
-	medication: {
-		tabLabel: "Medication",
-		columns: [
-			{ key: "drug", label: "Drug" },
-			{ key: "dosage", label: "Dosage" },
-			{ key: "date", label: "Date" },
-		],
-	},
-	prescription: {
-		tabLabel: "Prescription",
-		columns: [
-			{ key: "drugClass", label: "Drug Class" },
-			{ key: "prescribedBy", label: "Prescribed by" },
-			{ key: "date", label: "Date" },
-		],
-	},
+	LAB_TEST: { tabLabel: "Lab Test", primaryField: { key: "testName", label: "Test Name" } },
+	PRESCRIPTION: { tabLabel: "Prescription", primaryField: { key: "drugClass", label: "Drug Class" } },
+	MEDICATION: { tabLabel: "Medication", primaryField: { key: "drug", label: "Drug" } },
+	ALLERGY: { tabLabel: "Allergy", primaryField: { key: "cause", label: "Cause" } },
+	BLOOD_TEST: { tabLabel: "Blood Test" },
+	SCAN: { tabLabel: "Scan" },
+	REPORT: { tabLabel: "Report" },
+	OTHER: { tabLabel: "Other" },
 };
 
-export const initialRecords: AnyRecord[] = [
-	// Lab Report
-	{ id: "lr-1", type: "lab_report", testName: "Urinalysis (UA)", referredBy: "Dr. Mike JP", facility: "Lilly Hospital", date: "Today, 10:00AM", zkProof: "verified" },
-	{ id: "lr-2", type: "lab_report", testName: "Mammogram", referredBy: "Dr. Mike JP", facility: "Lilly Hospital", date: "Today, 10:00AM", zkProof: "verified" },
-	{ id: "lr-3", type: "lab_report", testName: "Pap Smear", referredBy: "Dr. Mike JP", facility: "Lilly Hospital", date: "Today, 10:00AM", zkProof: "unverified" },
-	{ id: "lr-4", type: "lab_report", testName: "Pap Smear", referredBy: "Dr. Mike JP", facility: "Lilly Hospital", date: "Today, 10:00AM", zkProof: "verified" },
-	{ id: "lr-5", type: "lab_report", testName: "Colonoscopy", referredBy: "Dr. Mike JP", facility: "Lilly Hospital", date: "Today, 10:00AM", zkProof: "verified" },
-	{ id: "lr-6", type: "lab_report", testName: "Mammogram", referredBy: "Dr. Mike JP", facility: "Lilly Hospital", date: "Today, 10:00AM", zkProof: "verified" },
-
-	// Allergies
-	{ id: "al-1", type: "allergies", allergyType: "Medication Allergies", cause: "Penicillin", management: "Emergency Epinephrine" },
-	{ id: "al-2", type: "allergies", allergyType: "Food Allergies", cause: "Peanuts, Milk", management: "Emergency Epinephrine" },
-	{ id: "al-3", type: "allergies", allergyType: "Environmental Allergies", cause: "Pollen, Dust", management: "Antihistamines" },
-
-	// Medication
-	{ id: "me-1", type: "medication", drug: "Ibuprofen (Advil)", dosage: "400mg twice daily", date: "Today, 10:00AM" },
-	{ id: "me-2", type: "medication", drug: "Warfarin", dosage: "5mg once daily", date: "Today, 10:00AM" },
-	{ id: "me-3", type: "medication", drug: "Simvastatin", dosage: "20mg once daily", date: "Today, 10:00AM" },
-
-	// Prescription
-	{ id: "pr-1", type: "prescription", drugClass: "Analgesics", prescribedBy: "Dr. Mike JP", date: "Today, 10:00AM" },
-	{ id: "pr-2", type: "prescription", drugClass: "Antibiotics", prescribedBy: "Dr. Mike JP", date: "Today, 10:00AM" },
-	{ id: "pr-3", type: "prescription", drugClass: "Antihypertensives", prescribedBy: "Dr. Mike JP", date: "Today, 10:00AM" },
-	{ id: "pr-4", type: "prescription", drugClass: "Antihistamines", prescribedBy: "Dr. Mike JP", date: "Today, 10:00AM" },
-	{ id: "pr-5", type: "prescription", drugClass: "Statins", prescribedBy: "Dr. Mike JP", date: "Today, 10:00AM" },
-	{ id: "pr-6", type: "prescription", drugClass: "Anticoagulants", prescribedBy: "Dr. Mike JP", date: "Today, 10:00AM" },
+export const recordTypeOrder: RecordType[] = [
+	"LAB_TEST",
+	"BLOOD_TEST",
+	"PRESCRIPTION",
+	"MEDICATION",
+	"ALLERGY",
+	"SCAN",
+	"REPORT",
+	"OTHER",
 ];

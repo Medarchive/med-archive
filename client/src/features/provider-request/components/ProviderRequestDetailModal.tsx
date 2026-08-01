@@ -1,18 +1,27 @@
 import Modal from "../../../components/ui/custom/Modal";
 import { Button } from "../../../components/ui/button";
-import { ProviderRequest } from "../types";
+import { AccessRequestData } from "../types";
 import StatusBadge from "./StatusBadge";
 
 interface ProviderRequestDetailModalProps {
-	request: ProviderRequest | null;
+	request: AccessRequestData | null;
 	onClose: () => void;
 	onDecision: (id: string, approved: boolean) => void;
+	isResponding: boolean;
 }
+
+const formatDate = (value?: string | null) => {
+	if (!value) return "—";
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return value;
+	return date.toLocaleDateString();
+};
 
 export default function ProviderRequestDetailModal({
 	request,
 	onClose,
 	onDecision,
+	isResponding,
 }: ProviderRequestDetailModalProps) {
 	return (
 		<Modal open={!!request} onClose={onClose}>
@@ -36,35 +45,53 @@ export default function ProviderRequestDetailModal({
 
 					<div className="flex items-center justify-between gap-4">
 						<p className="text-sm font-semibold">Request</p>
-						<p className="text-sm text-[#9B9B9B]">{request.request}</p>
+						<p className="text-sm text-[#9B9B9B]">{request.requestType}</p>
 					</div>
 
 					<div className="flex items-center justify-between gap-4">
-						<p className="text-sm font-semibold">Hospital</p>
-						<p className="text-sm text-[#9B9B9B]">{request.hospital}</p>
-					</div>
-
-					<div className="flex items-start justify-between gap-4">
-						<p className="text-sm font-semibold">Note</p>
-						<p className="max-w-70 text-right text-sm text-[#9B9B9B]">
-							{request.note}
+						<p className="text-sm font-semibold">Organization</p>
+						<p className="text-sm text-[#9B9B9B]">
+							{request.organizationName ?? "—"}
 						</p>
 					</div>
 
+					{request.specialty && (
+						<div className="flex items-center justify-between gap-4">
+							<p className="text-sm font-semibold">Specialty</p>
+							<p className="text-sm text-[#9B9B9B]">{request.specialty}</p>
+						</div>
+					)}
+
+					{request.note && (
+						<div className="flex items-start justify-between gap-4">
+							<p className="text-sm font-semibold">Note</p>
+							<p className="max-w-70 text-right text-sm text-[#9B9B9B]">
+								{request.note}
+							</p>
+						</div>
+					)}
+
 					<div className="flex items-center justify-between gap-4">
 						<p className="text-sm font-semibold">Date</p>
-						<p className="text-sm text-[#9B9B9B]">{request.date}</p>
+						<p className="text-sm text-[#9B9B9B]">
+							{formatDate(request.requestedAt)}
+						</p>
 					</div>
 
-					{request.status === "pending" ? (
+					{request.status === "PENDING" ? (
 						<div className="flex justify-end gap-2 pt-2">
-							<Button size="sm" onClick={() => onDecision(request.id, true)}>
+							<Button
+								size="sm"
+								isLoading={isResponding}
+								onClick={() => onDecision(request.id, true)}
+							>
 								Approve
 							</Button>
 
 							<Button
 								size="sm"
 								variant="destructive"
+								isLoading={isResponding}
 								onClick={() => onDecision(request.id, false)}
 							>
 								Decline
