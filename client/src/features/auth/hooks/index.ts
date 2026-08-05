@@ -15,14 +15,26 @@ import { ApiSuccessResponse, AuthTokensData } from "../../../types/api";
 
 // Login doesn't tell us whether onboarding is complete, so check for an
 // existing personal-info record and route accordingly: straight to the
-// dashboard if it exists, into the onboarding flow if it 404s.
+// dashboard if it's actually populated, into the onboarding flow otherwise.
+// The endpoint's docs only list 200/401 (no 404), and in practice it
+// returns 200 with an empty/null body rather than 404 when nothing has
+// been submitted yet — so we can't rely on the request throwing at all,
+// we have to check whether the payload is actually there.
 const redirectAfterLogin = async (
 	router: ReturnType<typeof useRouter>,
 	axiosAuth: ReturnType<typeof useAxiosAuth>,
 ) => {
 	try {
-		await axiosAuth.get(apiRoutes.personalInfo);
-		router.push(pageRoutes.dashboardRoutes.DASHBOARD);
+		const { data } = await axiosAuth.get<
+			ApiSuccessResponse<{ firstName?: string } | null>
+		>(apiRoutes.personalInfo);
+
+		const hasPersonalInfo = Boolean(data.data?.firstName);
+		router.push(
+			hasPersonalInfo
+				? pageRoutes.dashboardRoutes.DASHBOARD
+				: pageRoutes.authRoutes.PERSONAL_INFO,
+		);
 	} catch (error) {
 		if (isAxiosError(error) && error.response?.status === 404) {
 			router.push(pageRoutes.authRoutes.PERSONAL_INFO);
@@ -52,15 +64,17 @@ export const useRegister = () => {
 				ApiSuccessResponse<{ resendAfterSeconds: number }>
 			>(apiRoutes.auth.REGISTER, values);
 
-			// console.log(res);
+			console.log(data);
 			return data;
 		},
 		onSuccess: (data, variables) => {
 			toast.success(data.message);
+			console.log(data);
 			router.push(pageRoutes.authRoutes.VERIFY_OTP(variables.email));
 		},
 		onError: (error) => {
 			toast.error(getApiErrorMessage(error));
+			console.log(error);
 		},
 	});
 };

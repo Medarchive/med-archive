@@ -62,11 +62,32 @@ export const useConnectWallet = () => {
 				throw new Error(access.error?.message ?? "Wallet access was denied");
 			}
 
-			const { data: linkRes } = await axiosAuth.post<
-				ApiSuccessResponse<LinkWalletResponseData>
-			>(apiRoutes.wallet.BASE, { address: access.address });
+			let nonce: string;
+			try {
+				const { data: linkRes } = await axiosAuth.post<
+					ApiSuccessResponse<LinkWalletResponseData>
+				>(apiRoutes.wallet.BASE, { address: access.address });
 
-			const nonce = linkRes.data.nonce;
+				nonce = linkRes.data.nonce;
+			} catch (error) {
+				// "Wallet already linked" — most likely a previous attempt linked
+				// but never got signed/verified (closed the Freighter prompt,
+				// dropped connection, etc.), leaving a stuck linked-but-unverified
+				// wallet with no way to fetch its original nonce again (there's no
+				// regenerate-nonce endpoint). Self-heal by unlinking and relinking
+				// to get a fresh nonce, rather than dead-ending here.
+				if (isAxiosError(error) && error.response?.status === 409) {
+					await axiosAuth.delete(apiRoutes.wallet.BASE);
+
+					const { data: relinkRes } = await axiosAuth.post<
+						ApiSuccessResponse<LinkWalletResponseData>
+					>(apiRoutes.wallet.BASE, { address: access.address });
+
+					nonce = relinkRes.data.nonce;
+				} else {
+					throw error;
+				}
+			}
 
 			const signed = await freighter.signMessage(nonce, {
 				address: access.address,

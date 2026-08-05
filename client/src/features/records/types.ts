@@ -16,6 +16,10 @@ export type AllergyType =
 	| "LATEX"
 	| "OTHER";
 
+// The API docs don't actually define a proofStatus enum (the endpoint's
+// response schema is just the generic envelope with no data shape) — these
+// are our best-guess known values, but treat any other string as possible
+// too rather than assuming this is exhaustive.
 export type ProofStatus = "PENDING" | "VERIFIED" | "FAILED";
 
 export interface RecordFile {
@@ -47,7 +51,9 @@ export interface HealthRecordData {
 }
 
 export interface RecordProofData {
-	proofStatus: ProofStatus;
+	// Widened past the known ProofStatus union since the API doesn't
+	// document the actual set of values — render defensively.
+	proofStatus: ProofStatus | (string & {});
 	proofHash?: string;
 	generatedAt?: string;
 }

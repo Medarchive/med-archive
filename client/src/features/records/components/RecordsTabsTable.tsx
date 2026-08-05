@@ -9,6 +9,13 @@ interface RecordsTabsTableProps {
 	onRowClick: (record: HealthRecordData) => void;
 }
 
+type TabValue = "ALL" | RecordType;
+
+const tabOrder: TabValue[] = ["ALL", ...recordTypeOrder];
+
+const tabLabel = (tab: TabValue) =>
+	tab === "ALL" ? "All" : recordTypeConfig[tab].tabLabel;
+
 const formatDate = (value?: string | null) => {
 	if (!value) return "—";
 	const date = new Date(value);
@@ -17,20 +24,24 @@ const formatDate = (value?: string | null) => {
 };
 
 export default function RecordsTabsTable({ onRowClick }: RecordsTabsTableProps) {
-	const [activeTab, setActiveTab] = useState<RecordType>("LAB_TEST");
+	const [activeTab, setActiveTab] = useState<TabValue>("ALL");
 	const [currentPage, setCurrentPage] = useState(1);
 
 	const { data, isLoading } = useHealthRecords({
-		recordType: activeTab,
+		recordType: activeTab === "ALL" ? undefined : activeTab,
 		page: currentPage,
 		take: 8,
 	});
 
-	const primaryField = recordTypeConfig[activeTab].primaryField;
+	// Mixed types on the "All" tab don't share one primary field, so show
+	// the record's type instead of a type-specific column there.
+	const primaryField =
+		activeTab === "ALL" ? undefined : recordTypeConfig[activeTab].primaryField;
 	const records = data?.data ?? [];
 	const totalPages = data?.meta.totalPages ?? 1;
+	const columnCount = activeTab === "ALL" ? 3 : primaryField ? 3 : 2;
 
-	const handleTabChange = (tab: RecordType) => {
+	const handleTabChange = (tab: TabValue) => {
 		setActiveTab(tab);
 		setCurrentPage(1);
 	};
@@ -38,7 +49,7 @@ export default function RecordsTabsTable({ onRowClick }: RecordsTabsTableProps) 
 	return (
 		<div className="rounded-[12px] border border-[#F5F5F5] bg-white p-5">
 			<div className="flex flex-wrap gap-2">
-				{recordTypeOrder.map((type) => (
+				{tabOrder.map((type) => (
 					<button
 						key={type}
 						type="button"
@@ -51,7 +62,7 @@ export default function RecordsTabsTable({ onRowClick }: RecordsTabsTableProps) 
 							}
             `}
 					>
-						{recordTypeConfig[type].tabLabel}
+						{tabLabel(type)}
 					</button>
 				))}
 			</div>
@@ -61,6 +72,9 @@ export default function RecordsTabsTable({ onRowClick }: RecordsTabsTableProps) 
 					<thead>
 						<tr className="text-left text-xs text-[#9B9B9B]">
 							<th className="pb-3 font-normal">Title</th>
+							{activeTab === "ALL" && (
+								<th className="pb-3 font-normal">Type</th>
+							)}
 							{primaryField && (
 								<th className="pb-3 font-normal">{primaryField.label}</th>
 							)}
@@ -71,7 +85,7 @@ export default function RecordsTabsTable({ onRowClick }: RecordsTabsTableProps) 
 					<tbody className="divide-y divide-[#F5F5F5]">
 						{isLoading && (
 							<tr>
-								<td colSpan={3} className="py-6 text-center text-[#9B9B9B]">
+								<td colSpan={columnCount} className="py-6 text-center text-[#9B9B9B]">
 									Loading...
 								</td>
 							</tr>
@@ -79,7 +93,7 @@ export default function RecordsTabsTable({ onRowClick }: RecordsTabsTableProps) 
 
 						{!isLoading && records.length === 0 && (
 							<tr>
-								<td colSpan={3} className="py-6 text-center text-[#9B9B9B]">
+								<td colSpan={columnCount} className="py-6 text-center text-[#9B9B9B]">
 									No records yet
 								</td>
 							</tr>
@@ -95,6 +109,12 @@ export default function RecordsTabsTable({ onRowClick }: RecordsTabsTableProps) 
 									className="cursor-pointer duration-150 hover:bg-[#FAFAFA]"
 								>
 									<td className="py-3 font-medium">{record.title}</td>
+
+									{activeTab === "ALL" && (
+										<td className="py-3 text-[#9B9B9B]">
+											{recordTypeConfig[record.recordType].tabLabel}
+										</td>
+									)}
 
 									{primaryField && (
 										<td className="py-3 text-[#9B9B9B]">

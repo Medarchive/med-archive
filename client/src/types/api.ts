@@ -7,7 +7,10 @@ export interface ApiSuccessResponse<T = unknown> {
 
 export interface ApiErrorResponse {
 	statusCode: number;
-	message: string;
+	// NestJS's ValidationPipe returns an array of per-field messages on 400s
+	// (e.g. ["firstName must be longer than or equal to 2 characters"]) —
+	// every other error path returns a single string.
+	message: string | string[];
 	timestamp: string;
 	error?: string;
 }

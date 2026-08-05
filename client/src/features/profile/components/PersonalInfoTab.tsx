@@ -29,6 +29,12 @@ type PersonalInfoValues = z.infer<typeof PersonalInfoSchema>;
 
 const countryOptions = country.map((c) => ({ label: c.name, value: c.code }));
 
+// The GET response's dateOfBirth might come back as a full ISO timestamp
+// rather than a plain YYYY-MM-DD — normalize it so the <input type="date">
+// binds correctly and, if the user never touches it, the untouched value
+// round-trips back to the API in the format it actually expects.
+const toDateOnly = (value: string) => value.slice(0, 10);
+
 const emptyDefaults: PersonalInfoValues = {
 	first_name: "",
 	middle_name: "",
@@ -69,7 +75,7 @@ export default function PersonalInfoTab() {
 			gender: personalInfo.gender === "MALE" ? "male" : "female",
 			dial_code,
 			phone_number,
-			date_of_birth: personalInfo.dateOfBirth,
+			date_of_birth: toDateOnly(personalInfo.dateOfBirth),
 			address_line_1: personalInfo.addressLine1,
 			address_line_2: personalInfo.addressLine2 ?? "",
 			city: personalInfo.city,

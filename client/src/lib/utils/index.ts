@@ -12,7 +12,13 @@ export function getApiErrorMessage(
 	fallback = "Something went wrong. Please try again.",
 ) {
 	if (isAxiosError<ApiErrorResponse>(error)) {
-		return error.response?.data?.message ?? fallback;
+		const message = error.response?.data?.message;
+
+		if (Array.isArray(message)) {
+			return message.length > 0 ? message.join(" ") : fallback;
+		}
+
+		return message ?? fallback;
 	}
 
 	return fallback;
