@@ -144,9 +144,11 @@ export const ForgotPasswordSchema = z.object({
 		.email("Invalid email address"),
 });
 
+// The reset token comes from the link in the email (a URL query param),
+// not something the user types in — this form only collects the new
+// password.
 export const ResetPasswordSchema = z
 	.object({
-		otp: z.string().nonempty("OTP is required").min(6, "OTP must be 6 digits"),
 		password: z
 			.string()
 			.nonempty("Password is required")

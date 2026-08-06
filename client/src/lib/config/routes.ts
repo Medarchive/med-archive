@@ -4,6 +4,7 @@ export const pageRoutes = {
 		SIGN_IN: "/auth/sign-in",
 		SIGN_UP: "/auth/sign-up",
 		FORGOT_PASSWORD: "/auth/forgot-password",
+		RESET_PASSWORD: "/auth/reset-password",
 		VERIFY_OTP: (email: string) => `/auth/sign-up/verify-otp?email=${email}`,
 		PERSONAL_INFO: "/auth/sign-up/personal-info",
 		MEDICAL_HISTORY: "/auth/sign-up/medical-history",

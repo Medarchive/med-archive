@@ -232,6 +232,31 @@ export const useForgotPassword = () => {
 	});
 };
 
+export const useResetPassword = () => {
+	const router = useRouter();
+
+	return useMutation({
+		mutationFn: async (values: { token: string; newPassword: string }) => {
+			const { data } = await axiosPublic.post<ApiSuccessResponse<unknown>>(
+				apiRoutes.auth.RESET_PASSWORD,
+				values,
+			);
+
+			return data;
+		},
+		onSuccess: (data) => {
+			toast.success(data.message || "Password reset successfully");
+			router.push(pageRoutes.authRoutes.SIGN_IN);
+		},
+		onError: (error) => {
+			// The token expires in 15 minutes, so a 400 here is very likely
+			// "Invalid or expired token" — the backend's own message already
+			// says exactly that, just surface it as-is.
+			toast.error(getApiErrorMessage(error));
+		},
+	});
+};
+
 export const useLogoutMutation = () => {
 	const router = useRouter();
 	const axiosAuth = useAxiosAuth();
