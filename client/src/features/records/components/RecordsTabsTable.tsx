@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Paperclip } from "lucide-react";
 import Pagination from "../../../components/shared/Pagination";
 import { useHealthRecords } from "../hooks";
 import { HealthRecordData, recordTypeConfig, recordTypeOrder, RecordType } from "../types";
@@ -108,7 +109,20 @@ export default function RecordsTabsTable({ onRowClick }: RecordsTabsTableProps) 
 									onClick={() => onRowClick(record)}
 									className="cursor-pointer duration-150 hover:bg-[#FAFAFA]"
 								>
-									<td className="py-3 font-medium">{record.title}</td>
+									<td className="py-3 font-medium">
+										<span className="flex items-center gap-1.5">
+											{record.title}
+											{record.files.length > 0 && (
+												<span
+													title={`${record.files.length} attachment${record.files.length === 1 ? "" : "s"}`}
+													className="flex items-center gap-0.5 text-xs font-normal text-[#9B9B9B]"
+												>
+													<Paperclip className="size-3" />
+													{record.files.length}
+												</span>
+											)}
+										</span>
+									</td>
 
 									{activeTab === "ALL" && (
 										<td className="py-3 text-[#9B9B9B]">

@@ -22,32 +22,48 @@ export type AllergyType =
 // too rather than assuming this is exhaustive.
 export type ProofStatus = "PENDING" | "VERIFIED" | "FAILED";
 
+// Matches a real GET /api/v1/health-records response exactly (confirmed
+// against a live sample, not just the OpenAPI spec — that endpoint's data
+// schema wasn't detailed there either).
 export interface RecordFile {
 	id: string;
-	url: string;
+	healthRecordId: string;
+	fileName: string;
+	fileType: string;
+	fileSize: number;
+	s3Key: string;
+	// Presigned S3 URL — expires (fileUrlExpiresAt), so don't cache/store it
+	// past this fetch.
+	fileUrl: string;
+	fileUrlExpiresAt: string;
+	createdAt: string;
+	updatedAt: string;
 }
 
 export interface HealthRecordData {
 	id: string;
+	userId: string;
 	title: string;
 	recordType: RecordType;
 	recordDate?: string | null;
 	description?: string | null;
+	zkVerified: boolean;
 	files: RecordFile[];
 	createdAt: string;
 	updatedAt: string;
-	// Type-specific fields — present depending on `recordType`.
-	testName?: string;
-	referredBy?: string;
-	prescribedBy?: string;
-	drugClass?: string;
-	drug?: string;
-	dosage?: string;
-	frequency?: string;
+	// Type-specific fields — present depending on `recordType`, null (not
+	// undefined) when not applicable.
+	testName?: string | null;
+	referredBy?: string | null;
+	prescribedBy?: string | null;
+	drugClass?: string | null;
+	drug?: string | null;
+	dosage?: string | null;
+	frequency?: string | null;
 	endDate?: string | null;
-	allergyType?: AllergyType;
-	cause?: string;
-	management?: string;
+	allergyType?: AllergyType | null;
+	cause?: string | null;
+	management?: string | null;
 }
 
 export interface RecordProofData {

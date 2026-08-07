@@ -21,6 +21,12 @@ const formatDate = (value?: string | null) => {
 	return date.toLocaleDateString();
 };
 
+const formatFileSize = (bytes: number) => {
+	if (bytes < 1024) return `${bytes} B`;
+	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+	return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
 export default function RecordDetailModal({ record, onClose }: RecordDetailModalProps) {
 	const [confirmDelete, setConfirmDelete] = useState(false);
 	const { data: proof, isLoading: isProofLoading } = useRecordProof(record?.id ?? null);
@@ -96,10 +102,16 @@ export default function RecordDetailModal({ record, onClose }: RecordDetailModal
 
 					{record.files.length > 0 && (
 						<div className="space-y-2">
+							<p className="text-sm font-semibold">
+								{record.files.length === 1
+									? "Attachment"
+									: `Attachments (${record.files.length})`}
+							</p>
+
 							{record.files.map((file) => (
 								<a
 									key={file.id}
-									href={file.url}
+									href={file.fileUrl}
 									target="_blank"
 									rel="noreferrer"
 									className="flex items-center gap-3 rounded-[8px] border border-[#F5F5F5] p-3 duration-150 hover:bg-[#FAFAFA]"
@@ -107,7 +119,12 @@ export default function RecordDetailModal({ record, onClose }: RecordDetailModal
 									<span className="flex size-10 shrink-0 items-center justify-center rounded-[6px] bg-[#FAFAFA] text-[#9B9B9B]">
 										<FileText className="size-5" />
 									</span>
-									<p className="truncate text-sm text-[#9B9B9B]">View attachment</p>
+									<div className="min-w-0">
+										<p className="truncate text-sm">{file.fileName}</p>
+										<p className="text-xs text-[#9B9B9B]">
+											{formatFileSize(file.fileSize)}
+										</p>
+									</div>
 								</a>
 							))}
 						</div>

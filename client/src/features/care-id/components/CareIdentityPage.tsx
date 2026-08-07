@@ -5,15 +5,9 @@ import CareIdHeroCard from "./CareIdHeroCard";
 import RecordsTable from "./RecordsTable";
 import CareIdSkeleton from "../../../components/shared/skeletons/CareIdSkeleton";
 import { useCareId } from "../hooks";
+import { useMedicalProfile } from "../../medical-profile/hooks";
+import { bloodGroupLabels } from "../../medical-profile/types";
 import { useHasMounted } from "../../../hooks/useHasMounted";
-
-const healthOverview = [
-	{ label: "Blood Group", value: "O+" },
-	{ label: "Allergies", value: "Emergency Epinephrine" },
-	{ label: "Conditions", value: "Normal" },
-	{ label: "Medication", value: "Ibuprofen (Advil) BID" },
-	{ label: "Lab Report", value: "Urinalysis (UA)" },
-];
 
 const formatDate = (value?: string) => {
 	if (!value) return "—";
@@ -31,6 +25,44 @@ const formatDate = (value?: string) => {
 export default function CareIdentityPage() {
 	const hasMounted = useHasMounted();
 	const { data: careId, isLoading } = useCareId();
+	const { data: medicalProfile } = useMedicalProfile();
+
+	// "Active conditions" is part of this endpoint's documented response,
+	// but /api/v1/medical-conditions (its source) is a backend stub — so
+	// this may stay empty until that's actually implemented, not because
+	// the patient has no conditions.
+	const healthOverview = [
+		{
+			label: "Blood Group",
+			value: medicalProfile?.bloodGroup
+				? bloodGroupLabels[medicalProfile.bloodGroup]
+				: "Not recorded",
+		},
+		{ label: "Genotype", value: medicalProfile?.genotype ?? "Not recorded" },
+		{
+			label: "Height",
+			value: medicalProfile?.heightCm ? `${medicalProfile.heightCm} cm` : "Not recorded",
+		},
+		{
+			label: "Weight",
+			value: medicalProfile?.weightKg ? `${medicalProfile.weightKg} kg` : "Not recorded",
+		},
+		{
+			label: "Medication Status",
+			value:
+				medicalProfile?.currentlyTakingMedication === undefined
+					? "Not recorded"
+					: medicalProfile.currentlyTakingMedication
+						? "Currently on medication"
+						: "Not on medication",
+		},
+		{
+			label: "Active Conditions",
+			value: medicalProfile?.activeConditions?.length
+				? medicalProfile.activeConditions.join(", ")
+				: "None recorded",
+		},
+	];
 
 	if (!hasMounted || isLoading) {
 		return <CareIdSkeleton />;
@@ -51,7 +83,7 @@ export default function CareIdentityPage() {
 				<InfoListCard
 					title="Health Overview"
 					items={healthOverview}
-					footer="Last Updated: Today"
+					footer={`Last Updated: ${formatDate(medicalProfile?.updatedAt)}`}
 				/>
 
 				<div className="xl:col-span-2">

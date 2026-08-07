@@ -29,39 +29,49 @@ export const EmergencyContactSchema = z.object({
 
 export type EmergencyContactValues = z.infer<typeof EmergencyContactSchema>;
 
-export const ProfileHealthOverviewSchema = z.object({
-	body_weight: z
-		.string()
-		.trim()
-		.nonempty("Body weight is required")
-		.max(20, "Value is too long"),
+// Matches the real GET/PATCH /api/v1/medical-profile fields exactly (see
+// features/medical-profile/types.ts) — the previous version of this schema
+// (body_weight/sugar_level/hiv_status/etc.) didn't correspond to anything
+// the API actually accepts.
+const isPositiveNumber = (value: string) => {
+	const n = Number(value);
+	return !Number.isNaN(n) && n > 0;
+};
 
-	sugar_level: z.enum(["low", "normal", "high"], {
-		error: "Please select your sugar level",
+export const MedicalProfileSchema = z.object({
+	blood_group: z.enum(
+		[
+			"A_POSITIVE",
+			"A_NEGATIVE",
+			"B_POSITIVE",
+			"B_NEGATIVE",
+			"AB_POSITIVE",
+			"AB_NEGATIVE",
+			"O_POSITIVE",
+			"O_NEGATIVE",
+		],
+		{ error: "Please select your blood group" },
+	),
+
+	genotype: z.enum(["AA", "AS", "SS", "AC", "SC"], {
+		error: "Please select your genotype",
 	}),
 
-	medication: z.enum(
-		["none", "antibiotics", "antihypertensives", "insulin", "painkillers", "other"],
-		{ error: "Please select your medication" },
-	),
-
-	allergies: z.enum(
-		["none", "food_allergies", "drug_allergies", "environmental_allergies", "other"],
-		{ error: "Please select your allergies" },
-	),
-
-	allergic_to: z
+	height_cm: z
 		.string()
 		.trim()
-		.max(200, "Value is too long")
-		.optional()
-		.or(z.literal("")),
+		.nonempty("Height is required")
+		.refine(isPositiveNumber, "Enter a valid height in cm"),
 
-	hiv_status: z.enum(["negative", "positive", "unknown"], {
-		error: "Please select your HIV status",
+	weight_kg: z
+		.string()
+		.trim()
+		.nonempty("Weight is required")
+		.refine(isPositiveNumber, "Enter a valid weight in kg"),
+
+	currently_taking_medication: z.enum(["yes", "no"], {
+		error: "Please select an option",
 	}),
 });
 
-export type ProfileHealthOverviewValues = z.infer<
-	typeof ProfileHealthOverviewSchema
->;
+export type MedicalProfileFormValues = z.infer<typeof MedicalProfileSchema>;

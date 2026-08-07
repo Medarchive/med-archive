@@ -9,22 +9,36 @@ interface FileDropzoneProps {
 	onChange: (files: File[]) => void;
 	error?: string | null;
 	accept?: string;
+	maxFiles?: number;
 }
 
+// POST /api/v1/health-records accepts JPEG, PNG, WEBP, HEIC or PDF, up to
+// 20MB each and 10 files per record — no video, despite what this
+// component used to advertise.
 const FileDropzone: React.FC<FileDropzoneProps> = ({
 	name,
 	files,
 	onChange,
 	error,
-	accept = "image/jpeg,image/png,video/mp4",
+	accept = "image/jpeg,image/png,image/webp,image/heic,application/pdf",
+	maxFiles = 10,
 }) => {
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [isDragging, setIsDragging] = useState(false);
+	const [limitMessage, setLimitMessage] = useState<string | null>(null);
 
 	const handleFiles = (fileList: FileList | null) => {
 		if (!fileList) return;
 
-		onChange([...files, ...Array.from(fileList)]);
+		const combined = [...files, ...Array.from(fileList)];
+
+		if (combined.length > maxFiles) {
+			setLimitMessage(`Only ${maxFiles} files allowed per record — extra files were dropped.`);
+			onChange(combined.slice(0, maxFiles));
+		} else {
+			setLimitMessage(null);
+			onChange(combined);
+		}
 	};
 
 	return (
@@ -59,6 +73,11 @@ const FileDropzone: React.FC<FileDropzoneProps> = ({
 					Select multiple files in your file picker with Shift or Cmd/Ctrl
 				</p>
 
+				<p className="text-xs text-[#9B9B9B]">
+					JPEG, PNG, WEBP, HEIC or PDF &middot; up to 20MB each &middot; max{" "}
+					{maxFiles} files
+				</p>
+
 				<input
 					ref={inputRef}
 					id={name}
@@ -71,9 +90,9 @@ const FileDropzone: React.FC<FileDropzoneProps> = ({
 				/>
 			</div>
 
-			<p className="text-xs text-[#9B9B9B] text-center">
-				JPG, PNG up to 20MB &middot; MP4 up to 200MB
-			</p>
+			{limitMessage && (
+				<p className="text-xs text-error text-center">{limitMessage}</p>
+			)}
 
 			{files.length > 0 && (
 				<ul className="space-y-1 text-sm">
@@ -86,7 +105,10 @@ const FileDropzone: React.FC<FileDropzoneProps> = ({
 
 							<button
 								type="button"
-								onClick={() => onChange(files.filter((_, i) => i !== index))}
+								onClick={() => {
+									setLimitMessage(null);
+									onChange(files.filter((_, i) => i !== index));
+								}}
 								className="text-[#9B9B9B] hover:text-error shrink-0"
 							>
 								Remove

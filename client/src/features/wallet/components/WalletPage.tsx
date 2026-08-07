@@ -6,6 +6,7 @@ import WalletSkeleton from "../../../components/shared/skeletons/WalletSkeleton"
 import WalletBalanceHero from "./WalletBalanceHero";
 import TransactionTable from "./TransactionTable";
 import TransactionDetailModal from "./TransactionDetailModal";
+import ConnectWalletModal from "./ConnectWalletModal";
 import { useWallet, useConnectWallet } from "../hooks";
 import { WalletTransaction } from "../types";
 import { useHasMounted } from "../../../hooks/useHasMounted";
@@ -16,6 +17,7 @@ export default function WalletPage() {
 	const { mutate: connectWallet, isPending: isConnecting } = useConnectWallet();
 	const [selectedTransaction, setSelectedTransaction] =
 		useState<WalletTransaction | null>(null);
+	const [showConnectModal, setShowConnectModal] = useState(false);
 
 	if (!hasMounted || isLoading) {
 		return <WalletSkeleton />;
@@ -33,10 +35,20 @@ export default function WalletPage() {
 							: "Connect your Stellar wallet with Freighter to see your balance and transaction history."}
 					</p>
 
-					<Button isLoading={isConnecting} onClick={() => connectWallet()}>
+					<Button onClick={() => setShowConnectModal(true)}>
 						{wallet ? "Verify Wallet" : "Connect Wallet"}
 					</Button>
 				</div>
+
+				<ConnectWalletModal
+					open={showConnectModal}
+					onClose={() => setShowConnectModal(false)}
+					mode={wallet ? "verify" : "connect"}
+					isLoading={isConnecting}
+					onConfirm={(label) =>
+						connectWallet(label, { onSuccess: () => setShowConnectModal(false) })
+					}
+				/>
 			</div>
 		);
 	}

@@ -12,7 +12,12 @@ import {
 	PaginatedData,
 	PaginationParams,
 } from "../../../types/api";
-import { LinkWalletResponseData, WalletData, WalletTransaction } from "../types";
+import {
+	LinkWalletResponseData,
+	WalletData,
+	WalletNetwork,
+	WalletTransaction,
+} from "../types";
 
 export const WALLET_QUERY_KEY = ["wallet"];
 
@@ -39,15 +44,24 @@ export const useWallet = () => {
 	});
 };
 
+// Freighter reports the active network as "PUBLIC" for Stellar mainnet (or
+// "TESTNET"/"FUTURENET") — the API only models MAINNET/TESTNET, so anything
+// that isn't explicitly TESTNET is sent as MAINNET.
+const toApiNetwork = (freighterNetwork: string): WalletNetwork =>
+	freighterNetwork === "TESTNET" ? "TESTNET" : "MAINNET";
+
 // Full connect flow: get the address from Freighter, link it (which returns
 // a nonce), sign that nonce, then verify — same nonce-signature pattern as
 // wallet sign-in, just scoped to linking a wallet to an existing account.
+// `label` is the optional display name from POST /wallet's documented body
+// (e.g. "My main wallet") — purely cosmetic on the backend, so an empty
+// string is just omitted rather than sent.
 export const useConnectWallet = () => {
 	const axiosAuth = useAxiosAuth();
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: async () => {
+		mutationFn: async (label?: string) => {
 			const freighter = await import("@stellar/freighter-api");
 
 			const connection = await freighter.isConnected();
@@ -62,11 +76,22 @@ export const useConnectWallet = () => {
 				throw new Error(access.error?.message ?? "Wallet access was denied");
 			}
 
+			const address = access.address;
+
+			const { network: freighterNetwork, error: networkError } =
+				await freighter.getNetwork();
+			if (networkError) {
+				throw new Error("Couldn't determine which Stellar network Freighter is on");
+			}
+			const network = toApiNetwork(freighterNetwork);
+
+			const linkPayload = { address, network, label: label || undefined };
+
 			let nonce: string;
 			try {
 				const { data: linkRes } = await axiosAuth.post<
 					ApiSuccessResponse<LinkWalletResponseData>
-				>(apiRoutes.wallet.BASE, { address: access.address });
+				>(apiRoutes.wallet.BASE, linkPayload);
 
 				nonce = linkRes.data.nonce;
 			} catch (error) {
@@ -81,7 +106,7 @@ export const useConnectWallet = () => {
 
 					const { data: relinkRes } = await axiosAuth.post<
 						ApiSuccessResponse<LinkWalletResponseData>
-					>(apiRoutes.wallet.BASE, { address: access.address });
+					>(apiRoutes.wallet.BASE, linkPayload);
 
 					nonce = relinkRes.data.nonce;
 				} else {
@@ -90,7 +115,7 @@ export const useConnectWallet = () => {
 			}
 
 			const signed = await freighter.signMessage(nonce, {
-				address: access.address,
+				address,
 			});
 			if (signed.error || !signed.signedMessage) {
 				throw new Error(

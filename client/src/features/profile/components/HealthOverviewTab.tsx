@@ -1,9 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import InputField from "../../../components/ui/custom/InputField";
 import SelectField from "../../../components/ui/custom/SelectField";
 import {
@@ -13,57 +12,63 @@ import {
 	FormItem,
 	FormMessage,
 } from "../../../components/ui/form";
-import { ProfileHealthOverviewSchema } from "../../../lib/validations/profileValidations";
+import { MedicalProfileSchema } from "../../../lib/validations/profileValidations";
+import { useMedicalProfile, useUpdateMedicalProfile } from "../../medical-profile/hooks";
+import { bloodGroupLabels, BloodGroup, Genotype } from "../../medical-profile/types";
 import ProfileFormFooter from "./ProfileFormFooter";
+import ProfileSkeleton from "../../../components/shared/skeletons/ProfileSkeleton";
 
-type ProfileHealthOverviewValues = z.infer<typeof ProfileHealthOverviewSchema>;
+type MedicalProfileValues = z.infer<typeof MedicalProfileSchema>;
 
-const sugarLevelOptions = [
-	{ label: "Low", value: "low" },
-	{ label: "Normal", value: "normal" },
-	{ label: "High", value: "high" },
+const bloodGroupOptions = (Object.keys(bloodGroupLabels) as BloodGroup[]).map((value) => ({
+	label: bloodGroupLabels[value],
+	value,
+}));
+
+const genotypeOptions: { label: string; value: Genotype }[] = [
+	{ label: "AA", value: "AA" },
+	{ label: "AS", value: "AS" },
+	{ label: "SS", value: "SS" },
+	{ label: "AC", value: "AC" },
+	{ label: "SC", value: "SC" },
 ];
 
-const medicationOptions = [
-	{ label: "None", value: "none" },
-	{ label: "Antibiotics", value: "antibiotics" },
-	{ label: "Antihypertensives", value: "antihypertensives" },
-	{ label: "Insulin", value: "insulin" },
-	{ label: "Painkillers", value: "painkillers" },
-	{ label: "Other", value: "other" },
-];
-
-const allergyOptions = [
-	{ label: "None", value: "none" },
-	{ label: "Food Allergies", value: "food_allergies" },
-	{ label: "Drug Allergies", value: "drug_allergies" },
-	{ label: "Environmental Allergies", value: "environmental_allergies" },
-	{ label: "Other", value: "other" },
-];
-
-const hivStatusOptions = [
-	{ label: "Negative", value: "negative" },
-	{ label: "Positive", value: "positive" },
-	{ label: "Unknown", value: "unknown" },
-];
+const emptyDefaults: MedicalProfileValues = {
+	blood_group: "" as MedicalProfileValues["blood_group"],
+	genotype: "" as MedicalProfileValues["genotype"],
+	height_cm: "",
+	weight_kg: "",
+	currently_taking_medication: "" as MedicalProfileValues["currently_taking_medication"],
+};
 
 export default function HealthOverviewTab() {
 	const [isEditing, setIsEditing] = useState(false);
-	const [isLoading, setIsLoading] = useState(false);
+	const { data: medicalProfile, isLoading } = useMedicalProfile();
+	const { mutate: updateMedicalProfile, isPending } = useUpdateMedicalProfile();
 
-	const form = useForm<ProfileHealthOverviewValues>({
-		resolver: zodResolver(ProfileHealthOverviewSchema),
+	const form = useForm<MedicalProfileValues>({
+		resolver: zodResolver(MedicalProfileSchema),
 		mode: "onChange",
 		reValidateMode: "onChange",
-		defaultValues: {
-			body_weight: "89kg",
-			sugar_level: "normal",
-			medication: "antibiotics",
-			allergies: "food_allergies",
-			allergic_to: "Milk, peanut",
-			hiv_status: "negative",
-		},
+		defaultValues: emptyDefaults,
 	});
+
+	useEffect(() => {
+		if (!medicalProfile) return;
+
+		form.reset({
+			blood_group: medicalProfile.bloodGroup ?? emptyDefaults.blood_group,
+			genotype: medicalProfile.genotype ?? emptyDefaults.genotype,
+			height_cm: medicalProfile.heightCm ? String(medicalProfile.heightCm) : "",
+			weight_kg: medicalProfile.weightKg ? String(medicalProfile.weightKg) : "",
+			currently_taking_medication:
+				medicalProfile.currentlyTakingMedication === undefined
+					? emptyDefaults.currently_taking_medication
+					: medicalProfile.currentlyTakingMedication
+						? "yes"
+						: "no",
+		});
+	}, [medicalProfile, form]);
 
 	const {
 		formState: { isValid, isSubmitting },
@@ -71,16 +76,22 @@ export default function HealthOverviewTab() {
 
 	const disabled = !isEditing;
 
-	const onSubmit = (values: ProfileHealthOverviewValues) => {
-		console.log(values);
-		setIsLoading(true);
-
-		setTimeout(() => {
-			toast.success("Health overview updated successfully");
-			setIsLoading(false);
-			setIsEditing(false);
-		}, 1500);
+	const onSubmit = (values: MedicalProfileValues) => {
+		updateMedicalProfile(
+			{
+				bloodGroup: values.blood_group,
+				genotype: values.genotype,
+				heightCm: Number(values.height_cm),
+				weightKg: Number(values.weight_kg),
+				currentlyTakingMedication: values.currently_taking_medication === "yes",
+			},
+			{ onSuccess: () => setIsEditing(false) },
+		);
 	};
+
+	if (isLoading) {
+		return <ProfileSkeleton />;
+	}
 
 	return (
 		<Form {...form}>
@@ -88,85 +99,21 @@ export default function HealthOverviewTab() {
 				onSubmit={form.handleSubmit(onSubmit)}
 				className="space-y-4 my-5 sm:max-w-115"
 			>
-				<FormField
-					control={form.control}
-					name="body_weight"
-					render={({ field, fieldState }) => (
-						<FormItem>
-							<FormControl>
-								<InputField
-									{...field}
-									label="Body weight"
-									placeholder="e.g. 70kg"
-									type="text"
-									disabled={disabled}
-									error={fieldState.error?.message ?? null}
-								/>
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-
-				<FormField
-					control={form.control}
-					name="sugar_level"
-					render={({ field, fieldState }) => (
-						<FormItem>
-							<FormControl>
-								<SelectField
-									name={field.name}
-									label="Sugar Level"
-									value={field.value}
-									onChange={field.onChange}
-									onBlur={field.onBlur}
-									disabled={disabled}
-									options={sugarLevelOptions}
-									error={fieldState.error?.message ?? null}
-								/>
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-
-				<FormField
-					control={form.control}
-					name="medication"
-					render={({ field, fieldState }) => (
-						<FormItem>
-							<FormControl>
-								<SelectField
-									name={field.name}
-									label="Medication"
-									value={field.value}
-									onChange={field.onChange}
-									onBlur={field.onBlur}
-									disabled={disabled}
-									options={medicationOptions}
-									error={fieldState.error?.message ?? null}
-								/>
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-
 				<div className="grid gap-4 sm:grid-cols-2">
 					<FormField
 						control={form.control}
-						name="allergies"
+						name="blood_group"
 						render={({ field, fieldState }) => (
 							<FormItem>
 								<FormControl>
 									<SelectField
 										name={field.name}
-										label="Allergies"
+										label="Blood Group"
 										value={field.value}
 										onChange={field.onChange}
 										onBlur={field.onBlur}
 										disabled={disabled}
-										options={allergyOptions}
+										options={bloodGroupOptions}
 										error={fieldState.error?.message ?? null}
 									/>
 								</FormControl>
@@ -177,15 +124,59 @@ export default function HealthOverviewTab() {
 
 					<FormField
 						control={form.control}
-						name="allergic_to"
+						name="genotype"
+						render={({ field, fieldState }) => (
+							<FormItem>
+								<FormControl>
+									<SelectField
+										name={field.name}
+										label="Genotype"
+										value={field.value}
+										onChange={field.onChange}
+										onBlur={field.onBlur}
+										disabled={disabled}
+										options={genotypeOptions}
+										error={fieldState.error?.message ?? null}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+
+				<div className="grid gap-4 sm:grid-cols-2">
+					<FormField
+						control={form.control}
+						name="height_cm"
 						render={({ field, fieldState }) => (
 							<FormItem>
 								<FormControl>
 									<InputField
 										{...field}
-										label="Things Allergic to?"
-										placeholder="e.g. Milk, peanut"
-										type="text"
+										label="Height (cm)"
+										placeholder="e.g. 170.5"
+										type="number"
+										disabled={disabled}
+										error={fieldState.error?.message ?? null}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+
+					<FormField
+						control={form.control}
+						name="weight_kg"
+						render={({ field, fieldState }) => (
+							<FormItem>
+								<FormControl>
+									<InputField
+										{...field}
+										label="Weight (kg)"
+										placeholder="e.g. 68"
+										type="number"
 										disabled={disabled}
 										error={fieldState.error?.message ?? null}
 									/>
@@ -198,30 +189,54 @@ export default function HealthOverviewTab() {
 
 				<FormField
 					control={form.control}
-					name="hiv_status"
+					name="currently_taking_medication"
 					render={({ field, fieldState }) => (
 						<FormItem>
-							<FormControl>
-								<SelectField
-									name={field.name}
-									label="HIV Status last know"
-									value={field.value}
-									onChange={field.onChange}
-									onBlur={field.onBlur}
-									disabled={disabled}
-									options={hivStatusOptions}
-									error={fieldState.error?.message ?? null}
-								/>
-							</FormControl>
-							<FormMessage />
+							<label className="text-sm font-medium">
+								Currently taking medication?
+							</label>
+
+							<div className="flex items-center gap-6">
+								<label className="flex items-center gap-2 text-sm cursor-pointer">
+									<input
+										type="radio"
+										value="yes"
+										checked={field.value === "yes"}
+										onChange={field.onChange}
+										disabled={disabled}
+										className="accent-primary size-4"
+									/>
+									Yes
+								</label>
+
+								<label className="flex items-center gap-2 text-sm cursor-pointer">
+									<input
+										type="radio"
+										value="no"
+										checked={field.value === "no"}
+										onChange={field.onChange}
+										disabled={disabled}
+										className="accent-primary size-4"
+									/>
+									No
+								</label>
+							</div>
+
+							<FormMessage>{fieldState.error?.message}</FormMessage>
 						</FormItem>
 					)}
 				/>
 
+				{/* "Active conditions" is part of the medical profile shown
+				    elsewhere in the app, but /api/v1/medical-conditions (the
+				    endpoint that would manage them) is documented as
+				    "Stub — not yet implemented" on the backend — no form for it
+				    here until that lands. */}
+
 				<ProfileFormFooter
 					isEditing={isEditing}
 					onEdit={() => setIsEditing(true)}
-					isLoading={isLoading}
+					isLoading={isPending}
 					disabled={disabled || !isValid || isSubmitting}
 				/>
 			</form>

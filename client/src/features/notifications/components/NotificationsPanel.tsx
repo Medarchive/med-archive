@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Bell, Trash2 } from "lucide-react";
+import Pagination from "../../../components/shared/Pagination";
 import {
 	useNotifications,
 	useMarkNotification,
 	useDeleteNotification,
 } from "../hooks";
-import { getNotificationText, isNotificationRead } from "../types";
+import { isNotificationRead } from "../types";
 
 const formatDate = (value?: string) => {
 	if (!value) return "";
@@ -18,13 +19,18 @@ const formatDate = (value?: string) => {
 
 export default function NotificationsPanel() {
 	const [open, setOpen] = useState(false);
+	const [page, setPage] = useState(1);
 	const containerRef = useRef<HTMLDivElement>(null);
 
-	const { data } = useNotifications({ take: 10 });
+	const { data } = useNotifications({ page, take: 10 });
 	const { mutate: markNotification } = useMarkNotification();
 	const { mutate: deleteNotification } = useDeleteNotification();
 
 	const notifications = data?.data ?? [];
+	const totalPages = data?.meta.totalPages ?? 1;
+	// There's no dedicated unread-count endpoint, so this can only count
+	// what's loaded on the current page — fine for a "something's new" bell
+	// badge, just not a true total across every page.
 	const unreadCount = notifications.filter((n) => !isNotificationRead(n)).length;
 
 	useEffect(() => {
@@ -85,9 +91,12 @@ export default function NotificationsPanel() {
 										read ? "" : "cursor-pointer bg-primary/5"
 									}`}
 								>
-									<div>
+									<div className="min-w-0">
 										<p className={read ? "text-[#9B9B9B]" : "font-medium"}>
-											{getNotificationText(notification)}
+											{notification.title}
+										</p>
+										<p className="mt-0.5 text-xs text-[#9B9B9B]">
+											{notification.body}
 										</p>
 										<p className="mt-1 text-xs text-[#9B9B9B]">
 											{formatDate(notification.createdAt)}
@@ -109,6 +118,16 @@ export default function NotificationsPanel() {
 							);
 						})}
 					</div>
+
+					{totalPages > 1 && (
+						<div className="border-t border-[#F5F5F5] px-4 py-3">
+							<Pagination
+								currentPage={page}
+								totalPages={totalPages}
+								onPageChange={setPage}
+							/>
+						</div>
+					)}
 				</div>
 			)}
 		</div>
