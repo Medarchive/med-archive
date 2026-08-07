@@ -8,6 +8,8 @@ import { useAxiosAuth } from "../../../hooks/useAxiosAuth";
 import { apiRoutes } from "../../../lib/config/apiRoutes";
 import { getApiErrorMessage } from "../../../lib/utils";
 import {
+	ALLOWED_STELLAR_NETWORK,
+	assertAllowedFreighterNetwork,
 	buildFreighterUnavailableError,
 	FreighterUnavailableError,
 } from "../../../lib/utils/freighter";
@@ -16,12 +18,7 @@ import {
 	PaginatedData,
 	PaginationParams,
 } from "../../../types/api";
-import {
-	LinkWalletResponseData,
-	WalletData,
-	WalletNetwork,
-	WalletTransaction,
-} from "../types";
+import { LinkWalletResponseData, WalletData, WalletTransaction } from "../types";
 
 export const WALLET_QUERY_KEY = ["wallet"];
 
@@ -47,12 +44,6 @@ export const useWallet = () => {
 		},
 	});
 };
-
-// Freighter reports the active network as "PUBLIC" for Stellar mainnet (or
-// "TESTNET"/"FUTURENET") — the API only models MAINNET/TESTNET, so anything
-// that isn't explicitly TESTNET is sent as MAINNET.
-const toApiNetwork = (freighterNetwork: string): WalletNetwork =>
-	freighterNetwork === "TESTNET" ? "TESTNET" : "MAINNET";
 
 // Full connect flow: get the address from Freighter, link it (which returns
 // a nonce), sign that nonce, then verify — same nonce-signature pattern as
@@ -87,9 +78,17 @@ export const useConnectWallet = () => {
 					"Couldn't determine which Stellar network Freighter is on",
 				);
 			}
-			const network = toApiNetwork(freighterNetwork);
 
-			const linkPayload = { address, network, label: label || undefined };
+			// Testnet-only for now (env-controlled) — reject rather than silently
+			// relabel, so a mainnet wallet never gets linked as if it were
+			// testnet or vice versa.
+			assertAllowedFreighterNetwork(freighterNetwork);
+
+			const linkPayload = {
+				address,
+				network: ALLOWED_STELLAR_NETWORK,
+				label: label || undefined,
+			};
 
 			let nonce: string;
 			try {

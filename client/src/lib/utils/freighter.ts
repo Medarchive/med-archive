@@ -67,3 +67,39 @@ export const buildFreighterUnavailableError = () => {
 		"Install Freighter",
 	);
 };
+
+// ---------------------------------------------------------------------
+// Network restriction — this app only accepts wallet links from one
+// Stellar network at a time, controlled by an env var rather than hardcoded,
+// so switching from testnet (pre-launch) to mainnet (live, real funds) is a
+// one-line config change, not a code change. There's deliberately no "allow
+// either" mode — silently letting testnet and mainnet wallets mix is exactly
+// the kind of mistake that's easy to make and expensive to get wrong on a
+// blockchain app.
+// ---------------------------------------------------------------------
+export type StellarNetwork = "TESTNET" | "MAINNET";
+
+export const ALLOWED_STELLAR_NETWORK: StellarNetwork =
+	process.env.NEXT_PUBLIC_STELLAR_NETWORK?.trim().toUpperCase() === "MAINNET"
+		? "MAINNET"
+		: "TESTNET";
+
+// Freighter reports Stellar mainnet as "PUBLIC", not "MAINNET".
+const matchesAllowedNetwork = (freighterNetwork: string) => {
+	const reported = freighterNetwork.trim().toUpperCase();
+	if (ALLOWED_STELLAR_NETWORK === "MAINNET") return reported === "PUBLIC";
+	return reported === "TESTNET";
+};
+
+export class FreighterWrongNetworkError extends Error {}
+
+// Throws unless Freighter is actively set to the one network this app is
+// currently configured to accept.
+export const assertAllowedFreighterNetwork = (freighterNetwork: string) => {
+	if (matchesAllowedNetwork(freighterNetwork)) return;
+
+	const label = ALLOWED_STELLAR_NETWORK === "MAINNET" ? "Mainnet" : "Testnet";
+	throw new FreighterWrongNetworkError(
+		`Freighter is set to a different Stellar network. Switch it to ${label} in the extension and try again — only ${label} is supported right now.`,
+	);
+};

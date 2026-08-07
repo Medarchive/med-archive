@@ -5,7 +5,11 @@ import { TriangleAlert } from "lucide-react";
 import Modal from "../../../components/ui/custom/Modal";
 import InputField from "../../../components/ui/custom/InputField";
 import { Button } from "../../../components/ui/button";
-import { getFreighterInstallUrl, isMobileDevice } from "../../../lib/utils/freighter";
+import {
+	ALLOWED_STELLAR_NETWORK,
+	getFreighterInstallUrl,
+	isMobileDevice,
+} from "../../../lib/utils/freighter";
 import { useHasMounted } from "../../../hooks/useHasMounted";
 
 interface ConnectWalletModalProps {
@@ -61,6 +65,17 @@ export default function ConnectWalletModal({
 							installed.
 						</p>
 					</div>
+				)}
+
+				{!isMobile && (
+					<p className="text-xs text-[#9B9B9B]">
+						This app only accepts{" "}
+						<span className="font-semibold">
+							{ALLOWED_STELLAR_NETWORK === "MAINNET" ? "Mainnet" : "Testnet"}
+						</span>{" "}
+						wallets right now — make sure Freighter is set to that network
+						before continuing.
+					</p>
 				)}
 
 				{mode === "connect" ? (
