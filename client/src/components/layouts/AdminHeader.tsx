@@ -1,25 +1,26 @@
 "use client";
 
 import { useEffect } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Search, User, Wallet } from "lucide-react";
+import { Menu, Search, ShieldCheck } from "lucide-react";
 import { useHeaderStore } from "@/lib/stores/header-store";
 import { pageRoutes } from "@/lib/config/routes";
-import { useWallet } from "../../features/wallet/hooks";
 import NotificationsPanel from "../../features/notifications/components/NotificationsPanel";
 
-const truncateAddress = (address: string) =>
-	address.length > 10 ? `${address.slice(0, 4)}...${address.slice(-4)}` : address;
+// Which section the search box currently drives, and what it searches by —
+// sections not listed here just don't use search, box still shows but does
+// nothing when typed into (same as before this was wired up at all).
+const SEARCH_PLACEHOLDERS: Record<string, string> = {
+	[pageRoutes.adminRoutes.USERS]: "Search users by email",
+	[pageRoutes.adminRoutes.ACTIVITY_LOGS]: "Filter activity by user ID",
+};
 
-// No patient/provider section has a search-driven list yet — the box stays
-// wired to the same shared state AdminHeader uses so any page that adds one
-// later just reads useHeaderStore().searchQuery, no new plumbing needed.
-export default function DashboardHeader() {
+export default function AdminHeader() {
 	const { openMenu, searchQuery, setSearchQuery } = useHeaderStore();
-	const { data: wallet } = useWallet();
 	const pathname = usePathname();
 
+	// A search left over from one section shouldn't silently keep filtering
+	// an unrelated one after navigating away.
 	useEffect(() => {
 		setSearchQuery("");
 	}, [pathname, setSearchQuery]);
@@ -41,30 +42,17 @@ export default function DashboardHeader() {
 					type="search"
 					value={searchQuery}
 					onChange={(e) => setSearchQuery(e.target.value)}
-					placeholder="Search"
+					placeholder={SEARCH_PLACEHOLDERS[pathname] ?? "Search"}
 					className="w-full rounded-[8px] border border-[#F5F5F5] bg-white py-2.5 pl-11 pr-4 text-sm outline-none duration-200 focus:border-primary placeholder:text-[#9B9B9B]"
 				/>
 			</div>
 
 			<div className="ml-auto flex items-center gap-2 sm:gap-3">
-				{wallet && (
-					<Link
-						href={pageRoutes.dashboardRoutes.WALLET}
-						className="hidden items-center gap-2 rounded-full border border-[#F5F5F5] px-3 py-2 text-sm font-medium duration-150 hover:bg-[#FAFAFA] sm:flex"
-					>
-						<Wallet className="size-4 text-primary" />
-						{truncateAddress(wallet.address)}
-					</Link>
-				)}
-
 				<NotificationsPanel />
 
-				<Link
-					href={pageRoutes.dashboardRoutes.PROFILE}
-					className="flex size-10 items-center justify-center rounded-full border border-[#F5F5F5] text-gray-600 duration-150 hover:bg-[#FAFAFA]"
-				>
-					<User className="size-4.5" />
-				</Link>
+				<span className="flex size-10 items-center justify-center rounded-full border border-[#F5F5F5] text-primary">
+					<ShieldCheck className="size-4.5" />
+				</span>
 			</div>
 		</header>
 	);

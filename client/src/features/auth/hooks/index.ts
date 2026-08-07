@@ -15,7 +15,12 @@ import {
 	FreighterUnavailableError,
 	toHexSignature,
 } from "../../../lib/utils/freighter";
-import { ApiErrorResponse, ApiSuccessResponse, AuthTokensData } from "../../../types/api";
+import {
+	ApiErrorResponse,
+	ApiSuccessResponse,
+	AuthTokensData,
+	UserProfileData,
+} from "../../../types/api";
 
 // Login doesn't tell us whether onboarding is complete, so check for an
 // existing personal-info record and route accordingly: straight to the
@@ -24,10 +29,28 @@ import { ApiErrorResponse, ApiSuccessResponse, AuthTokensData } from "../../../t
 // returns 200 with an empty/null body rather than 404 when nothing has
 // been submitted yet — so we can't rely on the request throwing at all,
 // we have to check whether the payload is actually there.
+//
+// Admins are a different persona entirely — no patient profile to speak
+// of, so this check itself would 404 for them and shove them into patient
+// onboarding. Route by role first, before ever touching personal-info.
 const redirectAfterLogin = async (
 	router: ReturnType<typeof useRouter>,
 	axiosAuth: ReturnType<typeof useAxiosAuth>,
 ) => {
+	try {
+		const { data: meRes } = await axiosAuth.get<ApiSuccessResponse<UserProfileData>>(
+			apiRoutes.users.ME,
+		);
+
+		if (meRes.data.role === "ADMIN") {
+			router.push(pageRoutes.adminRoutes.DASHBOARD);
+			return;
+		}
+	} catch {
+		// Fall through to the patient/provider flow below — worst case they
+		// land on the dashboard and any real auth problem surfaces there.
+	}
+
 	try {
 		const { data } = await axiosAuth.get<
 			ApiSuccessResponse<{ firstName?: string } | null>

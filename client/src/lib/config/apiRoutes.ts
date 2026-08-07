@@ -30,6 +30,17 @@ export const apiRoutes = {
 		VERIFY_PROVIDER: (id: string) => `/api/v1/users/${id}/verify-provider`,
 	},
 
+	admin: {
+		STATS: "/api/v1/admin/stats",
+		DELETE_USER: (id: string) => `/api/v1/admin/users/${id}`,
+		INVITES: "/api/v1/admin/invites",
+		INVITE_BY_ID: (id: string) => `/api/v1/admin/invites/${id}`,
+		ACCESS_REQUESTS: "/api/v1/admin/access-requests",
+		WALLETS: "/api/v1/admin/wallets",
+		ACTIVITY_LOGS: "/api/v1/admin/activity-logs",
+		BROADCAST_NOTIFICATION: "/api/v1/admin/notifications/broadcast",
+	},
+
 	personalInfo: "/api/v1/personal-info",
 	medHistory: "/api/v1/med-history",
 	medicalConditions: "/api/v1/medical-conditions",
@@ -55,10 +66,6 @@ export const apiRoutes = {
 	emergencyContacts: {
 		BASE: "/api/v1/emergency-contacts",
 		BY_ID: (id: string) => `/api/v1/emergency-contacts/${id}`,
-	},
-
-	admin: {
-		INVITES: "/api/v1/admin/invites",
 	},
 
 	providerProfile: {

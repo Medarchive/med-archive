@@ -34,6 +34,15 @@ export interface UserProfileData {
 	emailVerifiedAt: string | null;
 	createdAt: string;
 	updatedAt: string;
+	// GET /users/me and the admin user-detail endpoint both mention this
+	// nested patient/provider sub-profile, but its exact fields aren't
+	// detailed in the spec — best guess at what a provider's sub-profile
+	// carries (verifiedAt drives the admin "verify provider" action).
+	profile?: {
+		verifiedAt?: string | null;
+		specialty?: string | null;
+		licenseNumber?: string | null;
+	} | null;
 }
 
 export interface PaginationMeta {

@@ -3,7 +3,7 @@ import PersonalInfoForm from "../../../../../features/auth/components/PersonalIn
 
 export default function Page() {
 	return (
-		<div className="min-h-screen flex justify-center flex-col pb-20  ">
+		<div className="min-h-screen flex justify-center flex-col pb-20 md:pt-20 ">
 			<div className="mx-auto w-full sm:max-w-155">
 				<h3 className="font-semibold sm:text-xl">Personal Information</h3>
 

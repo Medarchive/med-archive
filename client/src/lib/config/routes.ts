@@ -24,4 +24,14 @@ export const pageRoutes = {
 		MEDICAL_TIMELINE: "/dashboard/medical-timeline",
 		WALLET: "/dashboard/wallet",
 	},
+	adminRoutes: {
+		DASHBOARD: "/admin",
+		USERS: "/admin/users",
+		INVITES: "/admin/invites",
+		ACCESS_REQUESTS: "/admin/access-requests",
+		WALLETS: "/admin/wallets",
+		ACTIVITY_LOGS: "/admin/activity-logs",
+		MEDICAL_CONDITIONS: "/admin/medical-conditions",
+		NOTIFICATIONS: "/admin/notifications",
+	},
 };

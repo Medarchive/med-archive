@@ -11,10 +11,14 @@ export default function Layout({
 		<div className="min-h-screen bg-[#FAFAFA] lg:pl-64">
 			<Sidebar />
 
-			<div className="flex min-h-screen flex-col">
+			{/* min-w-0 matters here — without it, a flex child (this column)
+			    refuses to shrink below its content's natural width, so a wide
+			    table further down forces the whole page to compress instead of
+			    just scrolling horizontally inside its own overflow-x-auto. */}
+			<div className="flex min-h-screen min-w-0 flex-col">
 				<DashboardHeader />
 
-				<main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+				<main className="min-w-0 flex-1 p-4 md:p-6 lg:p-8">{children}</main>
 			</div>
 		</div>
 	);
