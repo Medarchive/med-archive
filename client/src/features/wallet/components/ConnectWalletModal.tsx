@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { TriangleAlert } from "lucide-react";
 import Modal from "../../../components/ui/custom/Modal";
 import InputField from "../../../components/ui/custom/InputField";
 import { Button } from "../../../components/ui/button";
+import { getFreighterInstallUrl, isMobileDevice } from "../../../lib/utils/freighter";
+import { useHasMounted } from "../../../hooks/useHasMounted";
 
 interface ConnectWalletModalProps {
 	open: boolean;
@@ -23,6 +26,11 @@ export default function ConnectWalletModal({
 	mode,
 }: ConnectWalletModalProps) {
 	const [label, setLabel] = useState("");
+	const hasMounted = useHasMounted();
+	// Gated on hasMounted — navigator isn't available during SSR, and
+	// guessing wrong there would cause a hydration mismatch on real mobile
+	// devices.
+	const isMobile = hasMounted && isMobileDevice();
 
 	const handleConfirm = () => {
 		onConfirm(label.trim());
@@ -35,6 +43,26 @@ export default function ConnectWalletModal({
 			title={mode === "connect" ? "Connect Wallet" : "Verify Wallet"}
 		>
 			<div className="space-y-4">
+				{isMobile && (
+					<div className="flex items-start gap-2 rounded-[8px] border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+						<TriangleAlert className="mt-0.5 size-4 shrink-0" />
+						<p>
+							Freighter&apos;s browser extension isn&apos;t available on
+							mobile — this won&apos;t work from here. Get the{" "}
+							<a
+								href={getFreighterInstallUrl()}
+								target="_blank"
+								rel="noreferrer"
+								className="font-semibold underline"
+							>
+								Freighter mobile app
+							</a>
+							, or open this page on a desktop browser with the extension
+							installed.
+						</p>
+					</div>
+				)}
+
 				{mode === "connect" ? (
 					<>
 						<p className="text-sm text-[#9B9B9B]">
@@ -62,9 +90,14 @@ export default function ConnectWalletModal({
 				<Button
 					className="w-full"
 					isLoading={isLoading}
+					disabled={isMobile}
 					onClick={handleConfirm}
 				>
-					{mode === "connect" ? "Continue with Freighter" : "Verify with Freighter"}
+					{isMobile
+						? "Not available on mobile"
+						: mode === "connect"
+							? "Continue with Freighter"
+							: "Verify with Freighter"}
 				</Button>
 			</div>
 		</Modal>

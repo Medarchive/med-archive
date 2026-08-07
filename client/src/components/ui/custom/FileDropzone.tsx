@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ImageIcon } from "lucide-react";
+import { Copy, ImageIcon } from "lucide-react";
 
 interface FileDropzoneProps {
 	name: string;
@@ -67,10 +67,16 @@ const FileDropzone: React.FC<FileDropzoneProps> = ({
 					<ImageIcon className="size-4.5" />
 				</span>
 
-				<p className="font-semibold text-sm">Upload your media</p>
+				<p className="font-semibold text-sm">Upload your files</p>
 
-				<p className="text-sm text-[#9B9B9B]">
-					Select multiple files in your file picker with Shift or Cmd/Ctrl
+				<p className="flex items-center gap-1.5 text-sm font-medium text-primary">
+					<Copy className="size-3.5" />
+					You can upload more than one file at once
+				</p>
+
+				<p className="text-xs text-[#9B9B9B]">
+					Drag & drop files here, or click to browse — hold Shift or
+					Cmd/Ctrl in the file picker to select several
 				</p>
 
 				<p className="text-xs text-[#9B9B9B]">
@@ -95,27 +101,45 @@ const FileDropzone: React.FC<FileDropzoneProps> = ({
 			)}
 
 			{files.length > 0 && (
-				<ul className="space-y-1 text-sm">
-					{files.map((file, index) => (
-						<li
-							key={`${file.name}-${index}`}
-							className="flex items-center justify-between gap-2 rounded-[6px] border border-[#F5F5F5] px-3 py-2"
-						>
-							<span className="truncate">{file.name}</span>
+				<>
+					<div className="flex items-center justify-between text-xs text-[#9B9B9B]">
+						<span>
+							{files.length} of {maxFiles} file{maxFiles === 1 ? "" : "s"} selected
+						</span>
 
+						{files.length < maxFiles && (
 							<button
 								type="button"
-								onClick={() => {
-									setLimitMessage(null);
-									onChange(files.filter((_, i) => i !== index));
-								}}
-								className="text-[#9B9B9B] hover:text-error shrink-0"
+								onClick={() => inputRef.current?.click()}
+								className="font-medium text-primary hover:underline"
 							>
-								Remove
+								Add more
 							</button>
-						</li>
-					))}
-				</ul>
+						)}
+					</div>
+
+					<ul className="space-y-1 text-sm">
+						{files.map((file, index) => (
+							<li
+								key={`${file.name}-${index}`}
+								className="flex items-center justify-between gap-2 rounded-[6px] border border-[#F5F5F5] px-3 py-2"
+							>
+								<span className="truncate">{file.name}</span>
+
+								<button
+									type="button"
+									onClick={() => {
+										setLimitMessage(null);
+										onChange(files.filter((_, i) => i !== index));
+									}}
+									className="text-[#9B9B9B] hover:text-error shrink-0"
+								>
+									Remove
+								</button>
+							</li>
+						))}
+					</ul>
+				</>
 			)}
 		</div>
 	);

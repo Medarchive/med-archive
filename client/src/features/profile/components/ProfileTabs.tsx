@@ -1,9 +1,10 @@
-export type ProfileTab = "personal" | "emergency" | "health";
+export type ProfileTab = "personal" | "emergency" | "health" | "medical-history";
 
 const tabs: { label: string; value: ProfileTab }[] = [
 	{ label: "Personal Information", value: "personal" },
 	{ label: "Emergency Contact", value: "emergency" },
 	{ label: "Health Overview", value: "health" },
+	{ label: "Medical History", value: "medical-history" },
 ];
 
 interface ProfileTabsProps {

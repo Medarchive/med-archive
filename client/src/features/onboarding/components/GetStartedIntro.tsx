@@ -30,7 +30,7 @@ export default function GetStartedIntro() {
 
 			<Button
 				variant="dark"
-				onClick={() => router.push(pageRoutes.HOME)}
+				onClick={() => router.push(pageRoutes.dashboardRoutes.DASHBOARD)}
 				className="w-full sm:w-90"
 			>
 				Skip

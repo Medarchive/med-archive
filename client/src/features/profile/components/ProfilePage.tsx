@@ -4,6 +4,7 @@ import ProfileTabs, { ProfileTab } from "./ProfileTabs";
 import PersonalInfoTab from "./PersonalInfoTab";
 import EmergencyContactTab from "./EmergencyContactTab";
 import HealthOverviewTab from "./HealthOverviewTab";
+import MedicalHistoryTab from "./MedicalHistoryTab";
 
 export default function ProfilePage() {
 	const [activeTab, setActiveTab] = useState<ProfileTab>("personal");
@@ -19,6 +20,7 @@ export default function ProfilePage() {
 			{activeTab === "personal" && <PersonalInfoTab />}
 			{activeTab === "emergency" && <EmergencyContactTab />}
 			{activeTab === "health" && <HealthOverviewTab />}
+			{activeTab === "medical-history" && <MedicalHistoryTab />}
 		</div>
 	);
 }

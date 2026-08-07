@@ -8,6 +8,10 @@ import { useAxiosAuth } from "../../../hooks/useAxiosAuth";
 import { apiRoutes } from "../../../lib/config/apiRoutes";
 import { getApiErrorMessage } from "../../../lib/utils";
 import {
+	buildFreighterUnavailableError,
+	FreighterUnavailableError,
+} from "../../../lib/utils/freighter";
+import {
 	ApiSuccessResponse,
 	PaginatedData,
 	PaginationParams,
@@ -66,9 +70,7 @@ export const useConnectWallet = () => {
 
 			const connection = await freighter.isConnected();
 			if (connection.error || !connection.isConnected) {
-				throw new Error(
-					"Freighter wallet extension isn't installed. Get it from freighter.app to connect your wallet.",
-				);
+				throw buildFreighterUnavailableError();
 			}
 
 			const access = await freighter.requestAccess();
@@ -81,7 +83,9 @@ export const useConnectWallet = () => {
 			const { network: freighterNetwork, error: networkError } =
 				await freighter.getNetwork();
 			if (networkError) {
-				throw new Error("Couldn't determine which Stellar network Freighter is on");
+				throw new Error(
+					"Couldn't determine which Stellar network Freighter is on",
+				);
 			}
 			const network = toApiNetwork(freighterNetwork);
 
@@ -132,7 +136,7 @@ export const useConnectWallet = () => {
 				apiRoutes.wallet.VERIFY,
 				{ nonce, signature },
 			);
-
+			console.log("wallet details from freighter", data);
 			return data;
 		},
 		onSuccess: (data) => {
@@ -140,6 +144,17 @@ export const useConnectWallet = () => {
 			toast.success(data.message || "Wallet connected successfully");
 		},
 		onError: (error) => {
+			if (error instanceof FreighterUnavailableError) {
+				toast.error(error.message, {
+					action: {
+						label: error.installLabel,
+						onClick: () =>
+							window.open(error.installUrl, "_blank", "noopener,noreferrer"),
+					},
+				});
+				return;
+			}
+
 			toast.error(
 				error instanceof Error ? error.message : getApiErrorMessage(error),
 			);

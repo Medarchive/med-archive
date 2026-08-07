@@ -77,14 +77,14 @@ export const useCreatePersonalInfo = () => {
 		onSuccess: (data) => {
 			queryClient.invalidateQueries({ queryKey: PERSONAL_INFO_QUERY_KEY });
 			toast.success(data.message || "Personal information saved");
-			router.push(pageRoutes.authRoutes.MEDICAL_HISTORY);
+			router.push(pageRoutes.authRoutes.MEDICAL_PROFILE);
 		},
 		onError: (error) => {
 			// Already submitted (e.g. revisited via back button) — don't block
 			// the flow, just move on to the next onboarding step.
 			if (isAxiosError(error) && error.response?.status === 409) {
 				toast.message("Personal information already saved");
-				router.push(pageRoutes.authRoutes.MEDICAL_HISTORY);
+				router.push(pageRoutes.authRoutes.MEDICAL_PROFILE);
 				return;
 			}
 

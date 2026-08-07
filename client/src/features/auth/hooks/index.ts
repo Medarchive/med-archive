@@ -11,7 +11,8 @@ import { apiRoutes } from "../../../lib/config/apiRoutes";
 import { pageRoutes } from "../../../lib/config/routes";
 import { useAuthStore } from "../../../lib/stores/userAuthStore";
 import { getApiErrorMessage } from "../../../lib/utils";
-import { ApiSuccessResponse, AuthTokensData } from "../../../types/api";
+import { buildFreighterUnavailableError, FreighterUnavailableError } from "../../../lib/utils/freighter";
+import { ApiErrorResponse, ApiSuccessResponse, AuthTokensData } from "../../../types/api";
 
 // Login doesn't tell us whether onboarding is complete, so check for an
 // existing personal-info record and route accordingly: straight to the
@@ -119,6 +120,25 @@ export const useResendOtp = () => {
 	});
 };
 
+// POST /auth/login's docs list a single 401 for *both* "invalid credentials"
+// and "email not verified" — same status code, no separate error code, the
+// only thing that can possibly tell them apart is the message text. (If the
+// backend sends its now-familiar empty error body here too, this can't
+// fire and login just falls through to the generic invalid-credentials
+// toast — a backend-side limitation, not something fixable from here.)
+const UNVERIFIED_EMAIL_PATTERN = /not verified|unverified|verify.*email/i;
+
+const isUnverifiedEmailError = (error: unknown) => {
+	if (!isAxiosError<ApiErrorResponse>(error) || error.response?.status !== 401) {
+		return false;
+	}
+
+	const message = error.response.data?.message;
+	const text = Array.isArray(message) ? message.join(" ") : message;
+
+	return !!text && UNVERIFIED_EMAIL_PATTERN.test(text);
+};
+
 export const useLogin = () => {
 	const router = useRouter();
 	const axiosAuth = useAxiosAuth();
@@ -137,7 +157,22 @@ export const useLogin = () => {
 			toast.success(data.message);
 			await redirectAfterLogin(router, axiosAuth);
 		},
-		onError: (error) => {
+		onError: (error, variables) => {
+			if (isUnverifiedEmailError(error)) {
+				toast.message("Please verify your email to continue");
+
+				// A fresh code, since whatever was sent at registration may
+				// well have expired by now — best-effort, login should still
+				// redirect to the verify screen even if this fails (they can
+				// hit "Resend" manually there).
+				axiosPublic
+					.post(apiRoutes.auth.RESEND_OTP, { email: variables.email })
+					.catch(() => {});
+
+				router.push(pageRoutes.authRoutes.VERIFY_OTP(variables.email));
+				return;
+			}
+
 			// The backend responds to bad credentials with a 401 and an empty
 			// body (no `message`), so the generic fallback would otherwise show
 			// — give login specifically a fallback that actually tells the
@@ -175,9 +210,7 @@ export const useWalletLogin = () => {
 
 			const connection = await freighter.isConnected();
 			if (connection.error || !connection.isConnected) {
-				throw new Error(
-					"Freighter wallet extension isn't installed. Get it from freighter.app to sign in with your wallet.",
-				);
+				throw buildFreighterUnavailableError();
 			}
 
 			const access = await freighter.requestAccess();
@@ -216,6 +249,16 @@ export const useWalletLogin = () => {
 			await redirectAfterLogin(router, axiosAuth);
 		},
 		onError: (error) => {
+			if (error instanceof FreighterUnavailableError) {
+				toast.error(error.message, {
+					action: {
+						label: error.installLabel,
+						onClick: () => window.open(error.installUrl, "_blank", "noopener,noreferrer"),
+					},
+				});
+				return;
+			}
+
 			toast.error(
 				error instanceof Error ? error.message : getApiErrorMessage(error),
 			);

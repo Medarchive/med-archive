@@ -1,6 +1,5 @@
-import React from "react";
-import UploadRecordForm from "../../../../../features/onboarding/components/UploadRecordForm";
+import UploadRecordStep from "../../../../../features/onboarding/components/UploadRecordStep";
 
 export default function Page() {
-	return <UploadRecordForm />;
+	return <UploadRecordStep />;
 }
