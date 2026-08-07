@@ -1,3 +1,5 @@
+import { Buffer } from "buffer";
+
 // Freighter is a browser extension — there's no way for @stellar/freighter-api
 // to detect it on a mobile browser even if the user has Freighter's separate
 // mobile app installed, since a mobile app can't inject itself into an
@@ -102,4 +104,28 @@ export const assertAllowedFreighterNetwork = (freighterNetwork: string) => {
 	throw new FreighterWrongNetworkError(
 		`Freighter is set to a different Stellar network. Switch it to ${label} in the extension and try again — only ${label} is supported right now.`,
 	);
+};
+
+// ---------------------------------------------------------------------
+// Freighter's `signMessage` can hand back the signature as either a Buffer
+// (older extension versions) or a string (current) — and, confirmed against
+// a real signature, that string is base64, *not* hex, despite looking
+// plausible either way at a glance. The backend's signature-verification
+// endpoints (wallet linking, wallet sign-in) both expect hex, so passing a
+// base64 string straight through fails verification with a 401 that gives
+// no hint the encoding was the problem. Normalize whichever shape/encoding
+// Freighter handed back into the hex the API actually wants.
+// ---------------------------------------------------------------------
+const isHexString = (value: string) => /^[0-9a-f]+$/i.test(value) && value.length % 2 === 0;
+
+export const toHexSignature = (signedMessage: string | Buffer | null) => {
+	if (!signedMessage) return "";
+
+	if (typeof signedMessage !== "string") {
+		return Buffer.from(signedMessage).toString("hex");
+	}
+
+	return isHexString(signedMessage)
+		? signedMessage.toLowerCase()
+		: Buffer.from(signedMessage, "base64").toString("hex");
 };

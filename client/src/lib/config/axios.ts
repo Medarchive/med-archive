@@ -140,6 +140,13 @@ axiosAuth.interceptors.request.use((config) => {
 	return config;
 });
 
+// Endpoints whose 401 means something domain-specific ("bad signature",
+// "invalid credentials") rather than "your access token expired" — retrying
+// those after a token refresh would just resend the identical payload and
+// get the identical domain-specific rejection again, plus trigger a
+// pointless token refresh in the process.
+const SKIP_REFRESH_RETRY_URLS = [apiRoutes.wallet.VERIFY];
+
 // Shared across concurrent 401s so a burst of requests triggers one refresh
 // call instead of one per request.
 let refreshPromise: Promise<string | null> | null = null;
@@ -170,7 +177,16 @@ axiosAuth.interceptors.response.use(
 			| (InternalAxiosRequestConfig & { _retry?: boolean })
 			| undefined;
 
-		if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+		const skipRetry = SKIP_REFRESH_RETRY_URLS.some((url) =>
+			originalRequest?.url?.includes(url),
+		);
+
+		if (
+			error.response?.status === 401 &&
+			originalRequest &&
+			!originalRequest._retry &&
+			!skipRetry
+		) {
 			originalRequest._retry = true;
 
 			refreshPromise ??= refreshAccessToken().finally(() => {

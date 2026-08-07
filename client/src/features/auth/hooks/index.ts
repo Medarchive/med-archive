@@ -3,7 +3,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Buffer } from "buffer";
 import { isAxiosError } from "axios";
 import { axiosPublic } from "../../../lib/config/axios";
 import { useAxiosAuth } from "../../../hooks/useAxiosAuth";
@@ -11,7 +10,11 @@ import { apiRoutes } from "../../../lib/config/apiRoutes";
 import { pageRoutes } from "../../../lib/config/routes";
 import { useAuthStore } from "../../../lib/stores/userAuthStore";
 import { getApiErrorMessage } from "../../../lib/utils";
-import { buildFreighterUnavailableError, FreighterUnavailableError } from "../../../lib/utils/freighter";
+import {
+	buildFreighterUnavailableError,
+	FreighterUnavailableError,
+	toHexSignature,
+} from "../../../lib/utils/freighter";
 import { ApiErrorResponse, ApiSuccessResponse, AuthTokensData } from "../../../types/api";
 
 // Login doesn't tell us whether onboarding is complete, so check for an
@@ -188,15 +191,6 @@ export const useLogin = () => {
 	});
 };
 
-// Freighter can return the signed message as a hex Buffer (older extension
-// versions) or a plain string (current) — normalize to the hex string the
-// API expects either way.
-const getSignatureHex = (signedMessage: string | Buffer | null) => {
-	if (!signedMessage) return "";
-	if (typeof signedMessage === "string") return signedMessage;
-	return Buffer.from(signedMessage).toString("hex");
-};
-
 export const useWalletLogin = () => {
 	const router = useRouter();
 	const axiosAuth = useAxiosAuth();
@@ -238,7 +232,7 @@ export const useWalletLogin = () => {
 			>(apiRoutes.auth.USE_WALLET, {
 				address,
 				nonce,
-				signature: getSignatureHex(signed.signedMessage),
+				signature: toHexSignature(signed.signedMessage),
 			});
 
 			return data;

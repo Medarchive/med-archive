@@ -3,15 +3,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { isAxiosError } from "axios";
-import { Buffer } from "buffer";
 import { useAxiosAuth } from "../../../hooks/useAxiosAuth";
 import { apiRoutes } from "../../../lib/config/apiRoutes";
 import { getApiErrorMessage } from "../../../lib/utils";
 import {
-	ALLOWED_STELLAR_NETWORK,
 	assertAllowedFreighterNetwork,
 	buildFreighterUnavailableError,
 	FreighterUnavailableError,
+	toHexSignature,
 } from "../../../lib/utils/freighter";
 import {
 	ApiSuccessResponse,
@@ -81,14 +80,14 @@ export const useConnectWallet = () => {
 
 			// Testnet-only for now (env-controlled) — reject rather than silently
 			// relabel, so a mainnet wallet never gets linked as if it were
-			// testnet or vice versa.
+			// testnet or vice versa. This check stays client-side only: the
+			// live API 400s with "property network should not exist" if it's
+			// included in the request body at all, despite the docs' example
+			// showing it — the backend apparently derives/ignores network
+			// itself rather than accepting it as input.
 			assertAllowedFreighterNetwork(freighterNetwork);
 
-			const linkPayload = {
-				address,
-				network: ALLOWED_STELLAR_NETWORK,
-				label: label || undefined,
-			};
+			const linkPayload = { address, label: label || undefined };
 
 			let nonce: string;
 			try {
@@ -126,10 +125,7 @@ export const useConnectWallet = () => {
 				);
 			}
 
-			const signature =
-				typeof signed.signedMessage === "string"
-					? signed.signedMessage
-					: Buffer.from(signed.signedMessage).toString("hex");
+			const signature = toHexSignature(signed.signedMessage);
 
 			const { data } = await axiosAuth.post<ApiSuccessResponse<unknown>>(
 				apiRoutes.wallet.VERIFY,

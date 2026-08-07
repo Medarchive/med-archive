@@ -17,9 +17,21 @@ export function buildSignedHeaders() {
 		.update(`${API_KEY_SECRET}:${timestamp}`)
 		.digest("hex");
 
-	return {
+	const headers = {
 		"x-api-key": API_KEY_SECRET,
 		"x-api-timestamp": timestamp,
 		"x-api-signature": signature,
 	};
+
+	// Dev-only, and only ever prints to the Next.js *server* terminal (this
+	// file can't be imported client-side) — for copying straight into
+	// Swagger's per-request headers to test the real API directly. The
+	// signature is bound to the timestamp above, so it's only valid for a
+	// short window server-side — grab a fresh set (make any request through
+	// the app) if Swagger starts rejecting it as expired/invalid.
+	if (process.env.NODE_ENV !== "production") {
+		console.log("[apiSigning] headers for Swagger \"Authorize\":", headers);
+	}
+
+	return headers;
 }
