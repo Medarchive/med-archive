@@ -92,17 +92,34 @@ const attachApiLogging = (instance: AxiosInstance, label: string) => {
 		(error: AxiosError) => {
 			const config = error.config as TimedConfig | undefined;
 			const duration = config?.__startedAt ? Date.now() - config.__startedAt : undefined;
+			const status = error.response?.status;
+
+			// 4xx are expected, user-facing failures (bad credentials, failed
+			// validation, etc.) — log those as a warning so they don't trip
+			// Next's dev-mode Console Error overlay on every wrong-password
+			// attempt. Real bugs (5xx, network errors with no response at all)
+			// still get the full console.error treatment.
+			const isClientError = typeof status === "number" && status >= 400 && status < 500;
+			const log = isClientError ? console.warn : console.error;
 
 			console.groupCollapsed(
-				`%c[api:${label}] %c${error.response?.status ?? "ERR"} %c${(config?.method ?? "?").toUpperCase()} ${config?.url ?? "unknown"}%c ${duration ?? "?"}ms`,
+				`%c[api:${label}] %c${status ?? "ERR"} %c${(config?.method ?? "?").toUpperCase()} ${config?.url ?? "unknown"}%c ${duration ?? "?"}ms`,
 				"color:#9B9B9B",
-				"color:#dc2626;font-weight:600",
+				isClientError ? "color:#d97706;font-weight:600" : "color:#dc2626;font-weight:600",
 				"color:inherit",
 				"color:#9B9B9B",
 			);
 			if (config?.data) console.log("request:", redact(config.data));
 			if (config?.params) console.log("params:", config.params);
-			console.error("error response:", error.response?.data ?? error.message);
+			// Include method/url/status in the message itself — Next's
+			// dev-mode Console Error overlay only surfaces the console.error
+			// call's own args, not the surrounding groupCollapsed label, so
+			// without this the overlay shows an unidentifiable "error
+			// response: {}" with no clue which request it came from.
+			log(
+				`[api:${label}] ${status ?? "ERR"} ${(config?.method ?? "?").toUpperCase()} ${config?.url ?? "unknown"} — error response:`,
+				error.response?.data ?? error.message,
+			);
 			console.groupEnd();
 
 			return Promise.reject(error);

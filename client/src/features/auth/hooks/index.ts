@@ -138,7 +138,17 @@ export const useLogin = () => {
 			await redirectAfterLogin(router, axiosAuth);
 		},
 		onError: (error) => {
-			toast.error(getApiErrorMessage(error));
+			// The backend responds to bad credentials with a 401 and an empty
+			// body (no `message`), so the generic fallback would otherwise show
+			// — give login specifically a fallback that actually tells the
+			// user what went wrong.
+			const status = isAxiosError(error) ? error.response?.status : undefined;
+			toast.error(
+				getApiErrorMessage(
+					error,
+					status === 401 ? "Invalid email or password" : undefined,
+				),
+			);
 		},
 	});
 };

@@ -30,7 +30,12 @@ export const useNotifications = (params: NotificationsParams = {}) => {
 
 			return data.data;
 		},
-		refetchInterval: 60_000,
+		// Stop polling once this is erroring — retrying a request that's
+		// getting a real HTTP error response every 60s forever just re-logs
+		// the same backend failure indefinitely for as long as the dashboard
+		// tab stays open. Resumes automatically once a fetch succeeds again
+		// (e.g. after a manual refetch or the backend recovering).
+		refetchInterval: (query) => (query.state.error ? false : 60_000),
 	});
 };
 

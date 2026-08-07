@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { isAxiosError } from "axios";
 
 function makeQueryClient() {
 	return new QueryClient({
@@ -9,7 +10,13 @@ function makeQueryClient() {
 			queries: {
 				staleTime: 60 * 1000,
 				refetchOnWindowFocus: false,
-				retry: 1,
+				// Only retry requests that never got a response at all (dropped
+				// connection, timeout) — once the backend has actually answered
+				// with an HTTP error, retrying blindly just repeats the same
+				// failure and, since attachApiLogging (see lib/config/axios.ts)
+				// logs every attempt, doubles up the console noise for it too.
+				retry: (failureCount, error) =>
+					isAxiosError(error) && error.response ? false : failureCount < 1,
 			},
 		},
 	});
