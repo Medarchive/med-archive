@@ -93,7 +93,14 @@ export default function RootLayout({
 			data-scroll-behavior="smooth"
 			className={cn("h-full", "antialiased", mulish.variable, "font-sans")}
 		>
-			<body className="min-h-full">
+			{/* suppressHydrationWarning here specifically, not deeper — browser
+			    extensions (Grammarly, password managers, etc.) inject their own
+			    attributes onto <body> (e.g. data-gr-ext-installed) before React
+			    hydrates, which React then reports as a mismatch even though
+			    nothing in our own render is wrong. This only silences attribute
+			    mismatches on this one element, not any real hydration bug
+			    elsewhere in the tree. */}
+			<body className="min-h-full" suppressHydrationWarning>
 				<ReactQueryProvider>
 					<AuthProvider>{children}</AuthProvider>
 				</ReactQueryProvider>

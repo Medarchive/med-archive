@@ -30,9 +30,10 @@ import {
 // been submitted yet — so we can't rely on the request throwing at all,
 // we have to check whether the payload is actually there.
 //
-// Admins are a different persona entirely — no patient profile to speak
-// of, so this check itself would 404 for them and shove them into patient
-// onboarding. Route by role first, before ever touching personal-info.
+// Admins and providers are different personas entirely — neither has a
+// patient profile, so this check itself would 404 for them and shove them
+// into patient onboarding. Route by role first, before ever touching
+// personal-info.
 const redirectAfterLogin = async (
 	router: ReturnType<typeof useRouter>,
 	axiosAuth: ReturnType<typeof useAxiosAuth>,
@@ -44,6 +45,11 @@ const redirectAfterLogin = async (
 
 		if (meRes.data.role === "ADMIN") {
 			router.push(pageRoutes.adminRoutes.DASHBOARD);
+			return;
+		}
+
+		if (meRes.data.role === "PROVIDER") {
+			router.push(pageRoutes.providerRoutes.DASHBOARD);
 			return;
 		}
 	} catch {
@@ -323,6 +329,39 @@ export const useResetPassword = () => {
 			// "Invalid or expired token" — the backend's own message already
 			// says exactly that, just surface it as-is.
 			toast.error(getApiErrorMessage(error));
+		},
+	});
+};
+
+// Field names for POST /auth/activate aren't documented with a schema —
+// best guess, matching the shape every other password-setting endpoint in
+// this app uses (token + the chosen password). Unlike reset-password, a
+// successful activation returns tokens immediately and logs the account
+// in — same as register/login — so this routes through the same
+// role-aware redirect rather than sending them to sign in manually.
+export const useActivateAccount = () => {
+	const router = useRouter();
+	const axiosAuth = useAxiosAuth();
+	const login = useAuthStore((state) => state.login);
+
+	return useMutation({
+		mutationFn: async (values: { token: string; password: string }) => {
+			const { data } = await axiosPublic.post<ApiSuccessResponse<AuthTokensData>>(
+				apiRoutes.auth.ACTIVATE,
+				values,
+			);
+
+			return data;
+		},
+		onSuccess: async (data) => {
+			login(data.data);
+			toast.success(data.message || "Account activated");
+			await redirectAfterLogin(router, axiosAuth);
+		},
+		onError: (error) => {
+			toast.error(
+				getApiErrorMessage(error, "This activation link is invalid or has expired"),
+			);
 		},
 	});
 };

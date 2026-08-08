@@ -1,0 +1,57 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import ProviderSidebar from "./ProviderSidebar";
+import ProviderHeader from "./ProviderHeader";
+import { useCurrentUser } from "../../features/users/hooks";
+import { pageRoutes } from "../../lib/config/routes";
+import { useHasMounted } from "../../hooks/useHasMounted";
+import Skeleton from "../ui/custom/Skeleton";
+
+// Client-side only — a UX nicety (redirect away, don't flash the provider
+// nav at a non-provider), not the real security boundary. That's the
+// backend's per-endpoint PROVIDER-role check, already enforced there (403
+// otherwise); this guard has no way to stop someone from hitting the API
+// directly.
+export default function ProviderGuard({ children }: { children: React.ReactNode }) {
+	const hasMounted = useHasMounted();
+	const router = useRouter();
+	const { data: user, isLoading, isError } = useCurrentUser();
+
+	const checked = hasMounted && !isLoading;
+	const isProvider = user?.role === "PROVIDER";
+
+	useEffect(() => {
+		if (!checked) return;
+
+		if (isError || !user) {
+			router.replace(pageRoutes.authRoutes.SIGN_IN);
+		} else if (!isProvider) {
+			router.replace(pageRoutes.dashboardRoutes.DASHBOARD);
+		}
+	}, [checked, isError, user, isProvider, router]);
+
+	if (!checked || !isProvider) {
+		return (
+			<div className="flex min-h-screen items-center justify-center bg-[#FAFAFA]">
+				<Skeleton className="h-10 w-40 rounded-[8px]" />
+			</div>
+		);
+	}
+
+	return (
+		<div className="min-h-screen bg-[#FAFAFA] lg:pl-64">
+			<ProviderSidebar />
+
+			{/* min-w-0 matters here — without it, a flex child (this column)
+			    refuses to shrink below its content's natural width, so a wide
+			    table further down forces the whole page to compress instead of
+			    just scrolling horizontally inside its own overflow-x-auto. */}
+			<div className="flex min-h-screen min-w-0 flex-col">
+				<ProviderHeader />
+				<main className="min-w-0 flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+			</div>
+		</div>
+	);
+}

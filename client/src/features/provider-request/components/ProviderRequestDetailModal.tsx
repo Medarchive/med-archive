@@ -31,21 +31,25 @@ export default function ProviderRequestDetailModal({
 						<p className="text-sm font-semibold">Provider Name</p>
 
 						<div className="flex items-center gap-2">
-							<span className="flex size-8 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-white">
-								{request.providerName
-									.replace(/^Dr\.\s*/i, "")
-									.slice(0, 2)
-									.toUpperCase()}
-							</span>
+							{request.providerProfilePictureUrl ? (
+								// eslint-disable-next-line @next/next/no-img-element
+								<img
+									src={request.providerProfilePictureUrl}
+									alt=""
+									className="size-8 shrink-0 rounded-full object-cover"
+								/>
+							) : (
+								<span className="flex size-8 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-white">
+									{request.providerName
+										.replace(/^Dr\.\s*/i, "")
+										.slice(0, 2)
+										.toUpperCase()}
+								</span>
+							)}
 							<span className="text-sm text-[#9B9B9B]">
 								{request.providerName}
 							</span>
 						</div>
-					</div>
-
-					<div className="flex items-center justify-between gap-4">
-						<p className="text-sm font-semibold">Request</p>
-						<p className="text-sm text-[#9B9B9B]">{request.requestType}</p>
 					</div>
 
 					<div className="flex items-center justify-between gap-4">
@@ -55,12 +59,17 @@ export default function ProviderRequestDetailModal({
 						</p>
 					</div>
 
-					{request.specialty && (
+					{request.providerType && (
 						<div className="flex items-center justify-between gap-4">
-							<p className="text-sm font-semibold">Specialty</p>
-							<p className="text-sm text-[#9B9B9B]">{request.specialty}</p>
+							<p className="text-sm font-semibold">Provider Type</p>
+							<p className="text-sm text-[#9B9B9B]">{request.providerType}</p>
 						</div>
 					)}
+
+					<div className="flex items-center justify-between gap-4">
+						<p className="text-sm font-semibold">Request</p>
+						<p className="text-sm text-[#9B9B9B]">{request.requestType}</p>
+					</div>
 
 					{request.note && (
 						<div className="flex items-start justify-between gap-4">
@@ -74,7 +83,7 @@ export default function ProviderRequestDetailModal({
 					<div className="flex items-center justify-between gap-4">
 						<p className="text-sm font-semibold">Date</p>
 						<p className="text-sm text-[#9B9B9B]">
-							{formatDate(request.requestedAt)}
+							{formatDate(request.createdAt)}
 						</p>
 					</div>
 

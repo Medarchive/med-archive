@@ -1,4 +1,5 @@
 import { UserRole } from "../../types/api";
+import { RequestStatus } from "../provider-request/types";
 
 // None of these response shapes are detailed in the OpenAPI spec beyond the
 // endpoint's existence and its pagination/filter params — same situation as
@@ -39,15 +40,22 @@ export interface AdminUserSummary {
 	updatedAt: string;
 }
 
-export type InviteStatus = "PENDING" | "ACCEPTED" | "EXPIRED" | "REVOKED";
+// Confirmed against a real GET /admin/invites response. "PENDING" is
+// inferred (the natural pre-acceptance state) — only "USED" has actually
+// been observed so far. No userId/acceptedUserId field — an accepted
+// invite has to be cross-referenced against the users list by email if you
+// need the resulting account.
+export type InviteStatus = "PENDING" | "USED" | (string & {});
 
 export interface InviteData {
 	id: string;
 	email: string;
 	name: string;
-	status?: InviteStatus | (string & {});
+	status: InviteStatus;
+	expiresAt: string;
+	usedAt: string | null;
+	createdById: string;
 	createdAt: string;
-	expiresAt?: string | null;
 }
 
 // Confirmed against a real GET /admin/wallets response — no balance and no
@@ -63,6 +71,35 @@ export interface AdminWalletSummary {
 	verifiedAt: string | null;
 	createdAt: string;
 	updatedAt: string;
+}
+
+// Confirmed against a real GET /admin/access-requests response — a
+// different shape from the patient-side inbox
+// (features/provider-request/types.ts's AccessRequestData): nested
+// patient/provider identity objects (id/fullName/email only, no
+// profile-picture/organization/type enrichment), plus a recordId the
+// patient-facing shape doesn't have. Confirmed these two endpoints do NOT
+// share one DTO despite representing the same underlying resource.
+export interface AdminAccessRequestData {
+	id: string;
+	patientId: string;
+	providerId: string;
+	recordId: string | null;
+	requestType: string;
+	note: string | null;
+	status: RequestStatus;
+	createdAt: string;
+	updatedAt: string;
+	patient: {
+		id: string;
+		fullName: string;
+		email: string;
+	};
+	provider: {
+		id: string;
+		fullName: string;
+		email: string;
+	};
 }
 
 // Confirmed against a real GET /admin/activity-logs response — no

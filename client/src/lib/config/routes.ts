@@ -5,6 +5,7 @@ export const pageRoutes = {
 		SIGN_UP: "/auth/sign-up",
 		FORGOT_PASSWORD: "/auth/forgot-password",
 		RESET_PASSWORD: "/auth/reset-password",
+		ACTIVATE_ACCOUNT: "/auth/activate",
 		// encodeURIComponent matters here — a literal "+" in a query string
 		// means "space" per application/x-www-form-urlencoded, so an
 		// unencoded "tag+test@example.com" comes back as "tag test@example.com"
@@ -33,5 +34,11 @@ export const pageRoutes = {
 		ACTIVITY_LOGS: "/admin/activity-logs",
 		MEDICAL_CONDITIONS: "/admin/medical-conditions",
 		NOTIFICATIONS: "/admin/notifications",
+	},
+	providerRoutes: {
+		DASHBOARD: "/provider",
+		PATIENTS: "/provider/patients",
+		PROFILE: "/provider/profile",
+		ACTIVITY: "/provider/activity",
 	},
 };

@@ -17,7 +17,12 @@ import {
 	FormItem,
 	FormMessage,
 } from "../../../components/ui/form";
-import { useAdminInvites, useCreateInvite, useRevokeInvite } from "../hooks";
+import {
+	useAdminInvites,
+	useCreateInvite,
+	useRevokeInvite,
+	useVerifyInvitedProvider,
+} from "../hooks";
 
 const InviteSchema = z.object({
 	name: z.string().trim().min(2, "Name is too short").max(100, "Name is too long"),
@@ -41,6 +46,8 @@ export default function InvitesPage() {
 	const { data, isLoading } = useAdminInvites({ page: currentPage, take: 10 });
 	const { mutate: createInvite, isPending: isCreating } = useCreateInvite();
 	const { mutate: revokeInvite, isPending: isRevoking } = useRevokeInvite();
+	const { mutate: verifyInvitedProvider, isPending: isVerifying } =
+		useVerifyInvitedProvider();
 
 	const invites = data?.data ?? [];
 	const totalPages = data?.meta.totalPages ?? 1;
@@ -156,7 +163,9 @@ export default function InvitesPage() {
 									<th className="whitespace-nowrap pb-3 pr-4 font-normal">
 										Status
 									</th>
-									<th className="whitespace-nowrap pb-3 pr-4 font-normal">Sent</th>
+									<th className="whitespace-nowrap pb-3 pr-4 font-normal">
+										Used / Expires
+									</th>
 									<th className="whitespace-nowrap pb-3 font-normal text-right">
 										Actions
 									</th>
@@ -172,31 +181,52 @@ export default function InvitesPage() {
 									</tr>
 								)}
 
-								{invites.map((invite) => (
-									<tr key={invite.id}>
-										<td className="whitespace-nowrap py-3 pr-4 font-medium">
-											{invite.name}
-										</td>
-										<td className="whitespace-nowrap py-3 pr-4 text-[#9B9B9B]">
-											{invite.email}
-										</td>
-										<td className="whitespace-nowrap py-3 pr-4 text-[#9B9B9B]">
-											{invite.status ?? "—"}
-										</td>
-										<td className="whitespace-nowrap py-3 pr-4 text-[#9B9B9B]">
-											{formatDate(invite.createdAt)}
-										</td>
-										<td className="whitespace-nowrap py-3 text-right">
-											<Button
-												size="sm"
-												variant="destructive"
-												onClick={() => setRevokeId(invite.id)}
-											>
-												Revoke
-											</Button>
-										</td>
-									</tr>
-								))}
+								{invites.map((invite) => {
+									const isUsed = invite.status === "USED";
+
+									return (
+										<tr key={invite.id}>
+											<td className="whitespace-nowrap py-3 pr-4 font-medium">
+												{invite.name}
+											</td>
+											<td className="whitespace-nowrap py-3 pr-4 text-[#9B9B9B]">
+												{invite.email}
+											</td>
+											<td className="whitespace-nowrap py-3 pr-4 text-[#9B9B9B]">
+												{invite.status}
+											</td>
+											<td className="whitespace-nowrap py-3 pr-4 text-[#9B9B9B]">
+												{isUsed
+													? `Used ${formatDate(invite.usedAt)}`
+													: `Expires ${formatDate(invite.expiresAt)}`}
+											</td>
+											<td className="whitespace-nowrap py-3 text-right">
+												{isUsed ? (
+													// The invite carries no reference to the account it
+													// created — verifying cross-references this email
+													// against the users list to find it.
+													<Button
+														size="sm"
+														isLoading={isVerifying}
+														onClick={() =>
+															verifyInvitedProvider(invite.email)
+														}
+													>
+														Verify Provider
+													</Button>
+												) : (
+													<Button
+														size="sm"
+														variant="destructive"
+														onClick={() => setRevokeId(invite.id)}
+													>
+														Revoke
+													</Button>
+												)}
+											</td>
+										</tr>
+									);
+								})}
 							</tbody>
 						</table>
 					</div>

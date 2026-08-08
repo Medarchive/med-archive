@@ -73,6 +73,13 @@ export const apiRoutes = {
 		PICTURE: "/api/v1/provider/profile/picture",
 		PATIENT_RECORDS: "/api/v1/provider/profile/patients/records",
 		RECORD_REQUESTS: "/api/v1/provider/profile/record-requests",
+		RECORD_REQUEST_BY_ID: (id: string) =>
+			`/api/v1/provider/profile/record-requests/${id}`,
+		PATIENT_APPROVED_RECORDS: (patientId: string) =>
+			`/api/v1/provider/profile/patients/${patientId}/records`,
+		PATIENT_APPROVED_RECORD_BY_ID: (patientId: string, recordId: string) =>
+			`/api/v1/provider/profile/patients/${patientId}/records/${recordId}`,
+		ACTIVITY: "/api/v1/provider/profile/activity",
 	},
 
 	notifications: {

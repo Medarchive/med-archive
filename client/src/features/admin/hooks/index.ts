@@ -11,8 +11,9 @@ import {
 	PaginationParams,
 	UserRole,
 } from "../../../types/api";
-import { AccessRequestData, RequestStatus } from "../../provider-request/types";
+import { RequestStatus } from "../../provider-request/types";
 import {
+	AdminAccessRequestData,
 	AdminStatsData,
 	AdminUserSummary,
 	AdminWalletSummary,
@@ -182,6 +183,52 @@ export const useRevokeInvite = () => {
 	});
 };
 
+// An invite has no userId/acceptedUserId once used (confirmed against a
+// real response) — only the email it was sent to. Cross-reference that
+// against the users list to find the resulting provider account, then
+// verify it. Real lookup, not a guessed field.
+export const useVerifyInvitedProvider = () => {
+	const axiosAuth = useAxiosAuth();
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: async (email: string) => {
+			const { data: usersRes } = await axiosAuth.get<
+				ApiSuccessResponse<PaginatedData<AdminUserSummary>>
+			>(apiRoutes.users.LIST, {
+				params: { search: email, role: "PROVIDER", take: 5 },
+			});
+
+			const match = usersRes.data.data.find(
+				(candidate) => candidate.email.toLowerCase() === email.toLowerCase(),
+			);
+
+			if (!match) {
+				throw new Error(
+					"Couldn't find the provider account for this invite — they may not have activated it yet.",
+				);
+			}
+
+			const { data } = await axiosAuth.patch<ApiSuccessResponse<unknown>>(
+				apiRoutes.users.VERIFY_PROVIDER(match.id),
+			);
+
+			return data;
+		},
+		onSuccess: (data) => {
+			queryClient.invalidateQueries({ queryKey: ADMIN_USERS_QUERY_KEY });
+			toast.success(data.message || "Provider verified");
+		},
+		onError: (error) => {
+			toast.error(
+				error instanceof Error
+					? error.message
+					: getApiErrorMessage(error, "Provider is already verified"),
+			);
+		},
+	});
+};
+
 interface AdminAccessRequestsParams extends PaginationParams {
 	status?: RequestStatus;
 }
@@ -193,7 +240,7 @@ export const useAdminAccessRequests = (params: AdminAccessRequestsParams = {}) =
 		queryKey: [...ADMIN_ACCESS_REQUESTS_QUERY_KEY, params],
 		queryFn: async () => {
 			const { data } = await axiosAuth.get<
-				ApiSuccessResponse<PaginatedData<AccessRequestData>>
+				ApiSuccessResponse<PaginatedData<AdminAccessRequestData>>
 			>(apiRoutes.admin.ACCESS_REQUESTS, { params });
 
 			return data.data;

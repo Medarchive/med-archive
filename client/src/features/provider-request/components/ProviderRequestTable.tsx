@@ -41,8 +41,8 @@ export default function ProviderRequestTable({
 					<thead>
 						<tr className="text-left text-xs text-[#9B9B9B]">
 							<th className="pb-3 font-normal">Provider Name</th>
-							<th className="pb-3 font-normal">Request</th>
 							<th className="pb-3 font-normal">Organization</th>
+							<th className="pb-3 font-normal">Request</th>
 							<th className="pb-3 font-normal">Note</th>
 							<th className="pb-3 font-normal">Date</th>
 							<th className="pb-3 font-normal">Status</th>
@@ -58,24 +58,34 @@ export default function ProviderRequestTable({
 							>
 								<td className="py-3">
 									<div className="flex items-center gap-2">
-										<span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary text-[10px] font-semibold text-white">
-											{getInitials(request.providerName)}
-										</span>
+										{request.providerProfilePictureUrl ? (
+											// eslint-disable-next-line @next/next/no-img-element
+											<img
+												src={request.providerProfilePictureUrl}
+												alt=""
+												className="size-7 shrink-0 rounded-full object-cover"
+											/>
+										) : (
+											<span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary text-[10px] font-semibold text-white">
+												{getInitials(request.providerName)}
+											</span>
+										)}
 										{request.providerName}
 									</div>
 								</td>
 
-								<td className="py-3 text-[#9B9B9B]">{request.requestType}</td>
 								<td className="py-3 text-[#9B9B9B]">
 									{request.organizationName ?? "—"}
 								</td>
+
+								<td className="py-3 text-[#9B9B9B]">{request.requestType}</td>
 
 								<td className="max-w-50 truncate py-3 text-[#9B9B9B]">
 									{request.note ?? "—"}
 								</td>
 
 								<td className="py-3 text-[#9B9B9B]">
-									{formatDate(request.requestedAt)}
+									{formatDate(request.createdAt)}
 								</td>
 
 								<td className="py-3">

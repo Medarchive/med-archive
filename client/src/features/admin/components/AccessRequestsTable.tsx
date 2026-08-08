@@ -72,9 +72,7 @@ export default function AccessRequestsTable() {
 						<tr className="text-left text-xs text-[#9B9B9B]">
 							<th className="whitespace-nowrap pb-3 pr-4 font-normal">Provider</th>
 							<th className="whitespace-nowrap pb-3 pr-4 font-normal">Email</th>
-							<th className="whitespace-nowrap pb-3 pr-4 font-normal">
-								Organization
-							</th>
+							<th className="whitespace-nowrap pb-3 pr-4 font-normal">Patient</th>
 							<th className="whitespace-nowrap pb-3 pr-4 font-normal">Request</th>
 							<th className="whitespace-nowrap pb-3 pr-4 font-normal">Date</th>
 							<th className="whitespace-nowrap pb-3 font-normal">Status</th>
@@ -93,19 +91,19 @@ export default function AccessRequestsTable() {
 						{requests.map((request) => (
 							<tr key={request.id}>
 								<td className="whitespace-nowrap py-3 pr-4 font-medium">
-									{request.providerName}
+									{request.provider.fullName}
 								</td>
 								<td className="whitespace-nowrap py-3 pr-4 text-[#9B9B9B]">
-									{request.providerEmail}
+									{request.provider.email}
 								</td>
 								<td className="whitespace-nowrap py-3 pr-4 text-[#9B9B9B]">
-									{request.organizationName ?? "—"}
+									{request.patient.fullName}
 								</td>
 								<td className="whitespace-nowrap py-3 pr-4 text-[#9B9B9B]">
 									{request.requestType}
 								</td>
 								<td className="whitespace-nowrap py-3 pr-4 text-[#9B9B9B]">
-									{formatDate(request.requestedAt)}
+									{formatDate(request.createdAt)}
 								</td>
 								<td className="whitespace-nowrap py-3">
 									<StatusBadge status={request.status} />

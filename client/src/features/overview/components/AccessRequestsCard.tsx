@@ -34,9 +34,18 @@ export default function AccessRequestsCard() {
 				{requests.map((request) => (
 					<div key={request.id} className="py-3">
 						<div className="flex items-center gap-3">
-							<span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-white">
-								{getInitials(request.providerName)}
-							</span>
+							{request.providerProfilePictureUrl ? (
+								// eslint-disable-next-line @next/next/no-img-element
+								<img
+									src={request.providerProfilePictureUrl}
+									alt=""
+									className="size-9 shrink-0 rounded-full object-cover"
+								/>
+							) : (
+								<span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-white">
+									{getInitials(request.providerName)}
+								</span>
+							)}
 
 							<div className="min-w-0 flex-1">
 								<p className="truncate text-sm font-semibold">
