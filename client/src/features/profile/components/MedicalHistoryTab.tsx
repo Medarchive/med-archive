@@ -11,6 +11,7 @@ import {
 } from "../../../components/ui/form";
 import { useMedicalProfile } from "../../medical-profile/hooks";
 import { useMedicalConditions, useUpdateMedHistory } from "../../med-history/hooks";
+import { ConditionData } from "../../med-history/types";
 import ProfileFormFooter from "./ProfileFormFooter";
 import ProfileSkeleton from "../../../components/shared/skeletons/ProfileSkeleton";
 
@@ -25,6 +26,14 @@ type MedicalHistoryValues = z.infer<typeof MedicalHistorySchema>;
 export default function MedicalHistoryTab() {
 	const [isEditing, setIsEditing] = useState(false);
 	const [selectedConditionIds, setSelectedConditionIds] = useState<string[]>([]);
+	// Tracks which server-side `conditions` value selectedConditionIds was
+	// last synced from, so the render-phase sync below (React's recommended
+	// "adjust state when a prop changes" pattern — no effect needed, avoids
+	// the cascading-render lint warning a useEffect+setState here would hit)
+	// only fires once per real data change, not every render.
+	const [syncedConditions, setSyncedConditions] = useState<ConditionData[] | undefined>(
+		undefined,
+	);
 
 	// There's no GET for med-history itself, but medical-profile mirrors the
 	// same `currentlyTakingMedication` flag — reuse that to prefill instead
@@ -36,6 +45,17 @@ export default function MedicalHistoryTab() {
 	const { mutate: updateMedHistory, isPending } = useUpdateMedHistory();
 
 	const conditions = conditionsData?.data ?? [];
+
+	// GET /api/v1/medical-profile returns a `conditions` array (full condition
+	// objects, confirmed via a real response) — that's the actual source of
+	// truth for what's already on file, so previously saved conditions now
+	// show pre-checked instead of always starting blank.
+	if (medicalProfile?.conditions !== syncedConditions) {
+		setSyncedConditions(medicalProfile?.conditions);
+		setSelectedConditionIds(
+			medicalProfile?.conditions?.map((condition) => condition.id) ?? [],
+		);
+	}
 
 	const form = useForm<MedicalHistoryValues>({
 		resolver: zodResolver(MedicalHistorySchema),
@@ -77,10 +97,10 @@ export default function MedicalHistoryTab() {
 				currentlyTakingMedication: values.currently_taking_medication === "yes",
 			},
 			{
-				onSuccess: () => {
-					setIsEditing(false);
-					setSelectedConditionIds([]);
-				},
+				// selectedConditionIds isn't reset here — the medical-profile
+				// invalidation this triggers refetches `conditions`, and the
+				// effect above re-syncs the picker from that real data.
+				onSuccess: () => setIsEditing(false),
 			},
 		);
 	};
@@ -138,15 +158,15 @@ export default function MedicalHistoryTab() {
 				<div>
 					<label className="text-sm font-medium">Existing Conditions</label>
 
-					{/* There's no GET for the patient's own med-history, so we can't
-					    tell which conditions are already saved — everything here
-					    starts unchecked. Submitting is still safe either way: the
-					    backend's POST /med-history silently ignores duplicates
-					    rather than erroring on ones already on file. */}
+					{/* There's no GET for med-history itself, but GET
+					    /medical-profile returns a real `conditions` list — used
+					    above to pre-check what's already on file. Note: saving
+					    only appends (confirmed via the docs), so unchecking an
+					    already-saved condition here won't remove it server-side
+					    yet — no PATCH/DELETE call is wired up for that. */}
 					<p className="mt-1 text-xs text-[#9B9B9B]">
-						Select any that apply. Previously saved conditions won&apos;t
-						show as pre-checked here, but re-selecting them won&apos;t
-						cause duplicates.
+						Select any that apply. Previously saved conditions show
+						pre-checked; re-selecting them won&apos;t cause duplicates.
 					</p>
 
 					{isConditionsLoading ? (

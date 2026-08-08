@@ -13,6 +13,7 @@ import {
 	useProviderProfile,
 	useRecordRequestStatus,
 	useApprovedPatientRecord,
+	useApprovedPatientRecords,
 	PatientLookupParams,
 } from "../hooks";
 import ProviderRecordDetailModal from "./ProviderRecordDetailModal";
@@ -57,6 +58,16 @@ export default function PatientLookupPage() {
 	const { mutate: checkStatus, isPending: isCheckingStatus } = useRecordRequestStatus();
 	const { mutate: fetchApprovedRecord, isPending: isFetchingRecord } =
 		useApprovedPatientRecord();
+	// The actual source of truth for "what am I already approved to see" —
+	// queried fresh on every search, independent of trackedRequests below
+	// (which only remembers what *this session* requested). Without this,
+	// approvals from a prior visit, or ones that landed after leaving the
+	// page, were invisible even though the backend already had them.
+	const {
+		data: approvedRecords,
+		isLoading: isLoadingApproved,
+		refetch: refetchApprovedRecords,
+	} = useApprovedPatientRecords(result?.patient.id ?? null);
 
 	const isVerified = !!profile?.verifiedAt;
 	const selectedRecord = result?.records.find((r) => r.id === selectedRecordId);
@@ -111,6 +122,12 @@ export default function PatientLookupPage() {
 							: tracked,
 					),
 				);
+
+				// So the newly-approved record shows up in "Approved Records"
+				// immediately, instead of only after the next fresh search.
+				if (data.status === "APPROVED") {
+					refetchApprovedRecords();
+				}
 			},
 		});
 	};
@@ -234,6 +251,49 @@ export default function PatientLookupPage() {
 						)}
 					</div>
 
+					<div className="rounded-[12px] border border-[#F5F5F5] bg-white p-5">
+						<p className="mb-3 font-semibold">Approved Records</p>
+
+						{isLoadingApproved ? (
+							<p className="py-3 text-sm text-[#9B9B9B]">
+								Checking approved access...
+							</p>
+						) : !approvedRecords || approvedRecords.length === 0 ? (
+							<p className="py-6 text-center text-sm text-[#9B9B9B]">
+								Nothing approved yet for this patient — request access to a
+								record above.
+							</p>
+						) : (
+							<div className="space-y-2">
+								{approvedRecords.map((record) => (
+									<div
+										key={record.id}
+										className="flex flex-wrap items-center justify-between gap-2 rounded-[8px] border border-[#F5F5F5] px-3 py-2"
+									>
+										<div className="flex items-center gap-2">
+											<span className="text-sm font-medium">
+												{record.title}
+											</span>
+											<span className="text-xs text-[#9B9B9B]">
+												{recordTypeConfig[record.recordType].tabLabel}
+											</span>
+										</div>
+
+										<Button
+											size="sm"
+											variant="ghost"
+											isLoading={isFetchingRecord}
+											onClick={() => handleViewRecord(record.id)}
+										>
+											<Eye className="size-3.5" />
+											View Record
+										</Button>
+									</div>
+								))}
+							</div>
+						)}
+					</div>
+
 					{trackedRequests.length > 0 && (
 						<div className="rounded-[12px] border border-[#F5F5F5] bg-white p-5">
 							<p className="mb-3 font-semibold">
@@ -259,17 +319,9 @@ export default function PatientLookupPage() {
 
 										<div className="flex items-center gap-2">
 											{tracked.status === "APPROVED" ? (
-												<Button
-													size="sm"
-													variant="ghost"
-													isLoading={isFetchingRecord}
-													onClick={() =>
-														handleViewRecord(tracked.recordId)
-													}
-												>
-													<Eye className="size-3.5" />
-													View Record
-												</Button>
+												<span className="text-xs text-[#9B9B9B]">
+													See Approved Records above
+												</span>
 											) : (
 												<Button
 													size="sm"

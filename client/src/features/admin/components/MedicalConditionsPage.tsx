@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { TriangleAlert } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import InputField from "../../../components/ui/custom/InputField";
-import TableSkeleton from "../../../components/shared/skeletons/TableSkeleton";
+import Skeleton from "../../../components/ui/custom/Skeleton";
 import {
 	Form,
 	FormControl,
@@ -14,17 +14,22 @@ import {
 	FormItem,
 	FormMessage,
 } from "../../../components/ui/form";
+import SelectField from "../../../components/ui/custom/SelectField";
 import { useCreateMedicalCondition } from "../hooks";
 import { useMedicalConditions } from "../../med-history/hooks";
+import { ConditionCategory } from "../../med-history/types";
+
+const categoryOptions: { label: string; value: ConditionCategory }[] = [
+	{ label: "Disease", value: "DISEASE" },
+	{ label: "Allergy", value: "ALLERGY" },
+	{ label: "Condition", value: "CONDITION" },
+];
 
 const ConditionSchema = z.object({
 	name: z.string().trim().min(2, "Name is required").max(150, "Name is too long"),
-	description: z
-		.string()
-		.trim()
-		.max(500, "Description is too long")
-		.optional()
-		.or(z.literal("")),
+	category: z.enum(["DISEASE", "ALLERGY", "CONDITION"], {
+		message: "Category is required",
+	}),
 });
 
 type ConditionValues = z.infer<typeof ConditionSchema>;
@@ -39,7 +44,7 @@ export default function MedicalConditionsPage() {
 		resolver: zodResolver(ConditionSchema),
 		mode: "onChange",
 		reValidateMode: "onChange",
-		defaultValues: { name: "", description: "" },
+		defaultValues: { name: "", category: undefined },
 	});
 
 	const {
@@ -48,8 +53,8 @@ export default function MedicalConditionsPage() {
 
 	const onSubmit = (values: ConditionValues) => {
 		createCondition(
-			{ name: values.name, description: values.description || undefined },
-			{ onSuccess: () => form.reset() },
+			{ name: values.name, category: values.category },
+			{ onSuccess: () => form.reset({ name: "", category: undefined }) },
 		);
 	};
 
@@ -65,9 +70,9 @@ export default function MedicalConditionsPage() {
 					<span className="font-semibold">
 						&quot;Stub — not yet implemented&quot;
 					</span>
-					. Listing and creating are both live; creation&apos;s exact
-					request fields aren&apos;t published though, so the form below
-					is a best guess.
+					. Listing and creating are both live — creation takes a name and
+					a category (a description field was tried and confirmed
+					rejected by the API).
 				</p>
 			</div>
 
@@ -75,13 +80,13 @@ export default function MedicalConditionsPage() {
 				<Form {...form}>
 					<form
 						onSubmit={form.handleSubmit(onSubmit)}
-						className="space-y-4 sm:max-w-115"
+						className="flex flex-col gap-3 sm:max-w-150 sm:flex-row sm:items-end"
 					>
 						<FormField
 							control={form.control}
 							name="name"
 							render={({ field, fieldState }) => (
-								<FormItem>
+								<FormItem className="flex-1">
 									<FormControl>
 										<InputField
 											{...field}
@@ -98,15 +103,17 @@ export default function MedicalConditionsPage() {
 
 						<FormField
 							control={form.control}
-							name="description"
+							name="category"
 							render={({ field, fieldState }) => (
-								<FormItem>
+								<FormItem className="w-full sm:w-40">
 									<FormControl>
-										<InputField
-											{...field}
-											label="Description (optional)"
-											placeholder="Brief description shown to patients"
-											type="text"
+										<SelectField
+											name={field.name}
+											label="Category"
+											placeholder="Select"
+											value={field.value ?? ""}
+											onChange={(e) => field.onChange(e.target.value)}
+											options={categoryOptions}
 											error={fieldState.error?.message ?? null}
 										/>
 									</FormControl>
@@ -119,7 +126,6 @@ export default function MedicalConditionsPage() {
 							type="submit"
 							isLoading={isPending}
 							disabled={!isValid || isSubmitting}
-							className="w-full sm:w-fit"
 						>
 							Create Condition
 						</Button>
@@ -127,47 +133,35 @@ export default function MedicalConditionsPage() {
 				</Form>
 			</div>
 
-			{isLoading ? (
-				<TableSkeleton rows={6} columns={2} />
-			) : (
-				<div className="rounded-[12px] border border-[#F5F5F5] bg-white p-5">
-					<p className="mb-3 font-semibold">Active Conditions</p>
+			<div className="rounded-[12px] border border-[#F5F5F5] bg-white p-5">
+				<p className="mb-3 font-semibold">Active Conditions</p>
 
-					{conditions.length === 0 ? (
-						<p className="py-6 text-center text-sm text-[#9B9B9B]">
-							No conditions created yet
-						</p>
-					) : (
-						<div className="overflow-x-auto">
-							<table className="w-full min-w-100 text-sm">
-								<thead>
-									<tr className="text-left text-xs text-[#9B9B9B]">
-										<th className="whitespace-nowrap pb-3 pr-4 font-normal">
-											Name
-										</th>
-										<th className="whitespace-nowrap pb-3 font-normal">
-											Description
-										</th>
-									</tr>
-								</thead>
-
-								<tbody className="divide-y divide-[#F5F5F5]">
-									{conditions.map((condition) => (
-										<tr key={condition.id}>
-											<td className="whitespace-nowrap py-3 pr-4 font-medium">
-												{condition.name}
-											</td>
-											<td className="py-3 text-[#9B9B9B]">
-												{condition.description ?? "—"}
-											</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-						</div>
-					)}
-				</div>
-			)}
+				{isLoading ? (
+					<div className="flex flex-wrap gap-2">
+						<Skeleton className="h-8 w-28 rounded-full" />
+						<Skeleton className="h-8 w-32 rounded-full" />
+						<Skeleton className="h-8 w-24 rounded-full" />
+					</div>
+				) : conditions.length === 0 ? (
+					<p className="py-6 text-center text-sm text-[#9B9B9B]">
+						No conditions created yet
+					</p>
+				) : (
+					<div className="flex flex-wrap gap-2">
+						{conditions.map((condition) => (
+							<span
+								key={condition.id}
+								className="flex items-center gap-1.5 rounded-full border border-[#E5E5E5] px-3 py-1.5 text-sm font-medium"
+							>
+								{condition.name}
+								<span className="text-xs font-normal text-[#9B9B9B]">
+									{condition.category}
+								</span>
+							</span>
+						))}
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }

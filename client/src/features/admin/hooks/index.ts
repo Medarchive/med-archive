@@ -13,6 +13,7 @@ import {
 } from "../../../types/api";
 import { RequestStatus } from "../../provider-request/types";
 import { MEDICAL_CONDITIONS_QUERY_KEY } from "../../med-history/hooks";
+import { CreateConditionPayload } from "../../med-history/types";
 import {
 	AdminAccessRequestData,
 	AdminStatsData,
@@ -284,17 +285,21 @@ export const useAdminActivityLogs = (params: AdminActivityLogsParams = {}) => {
 };
 
 // POST /api/v1/medical-conditions ("[Admin] Create a medical condition") —
-// request body schema still isn't published, so name/description below are
-// a guess, not confirmed. GET on this same path is real now though (see
-// features/med-history/hooks' useMedicalConditions), so this at least has a
-// real list to invalidate into — PUT/DELETE (edit/deactivate) are still
-// documented stubs.
+// confirmed (via a real 400) that `description` is rejected outright
+// ("property description should not exist"), so it's never sent. `category`
+// is required — confirmed via the live CreateMedicalConditionDto schema
+// (a real 400's error text named the field but not its values, so the docs
+// were pulled to get the actual enum): "DISEASE" | "ALLERGY" | "CONDITION".
+// `sortOrder` is optional, defaults to 0 server-side. GET on this same path
+// is real (see features/med-history/hooks' useMedicalConditions), so this at
+// least has a real list to invalidate into — PUT/DELETE (edit/deactivate)
+// are still documented stubs.
 export const useCreateMedicalCondition = () => {
 	const axiosAuth = useAxiosAuth();
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: async (payload: { name: string; description?: string }) => {
+		mutationFn: async (payload: CreateConditionPayload) => {
 			const { data } = await axiosAuth.post<ApiSuccessResponse<unknown>>(
 				apiRoutes.medicalConditions,
 				payload,

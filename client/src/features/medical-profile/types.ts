@@ -1,8 +1,13 @@
-// Confirmed against the live OpenAPI spec (GET/PATCH /api/v1/medical-profile)
-// — field names/enums match the PATCH DTO exactly. GET's `data` schema isn't
-// explicitly typed in the spec (generic object), but a profile GET/PATCH
-// pair sharing one shape is the safe assumption; adjust if a real GET
-// response turns out to differ.
+import { ConditionData } from "../med-history/types";
+
+// Confirmed against a real GET /api/v1/medical-profile response. Two
+// corrections from the earlier guessed shape: `heightCm`/`weightKg` come
+// back as decimal-formatted strings ("150.00"), not numbers — harmless
+// everywhere they're currently read (String()/template-literal usages
+// coerce fine either way) but now typed accurately. And the conditions
+// field is named `conditions`, not `activeConditions`, and holds full
+// condition objects (same shape as /api/v1/medical-conditions), not an
+// array of IDs/strings.
 export type BloodGroup =
 	| "A_POSITIVE"
 	| "A_NEGATIVE"
@@ -18,14 +23,10 @@ export type Genotype = "AA" | "AS" | "SS" | "AC" | "SC";
 export interface MedicalProfileData {
 	bloodGroup?: BloodGroup;
 	genotype?: Genotype;
-	heightCm?: number;
-	weightKg?: number;
+	heightCm?: string;
+	weightKg?: string;
 	currentlyTakingMedication?: boolean;
-	// "Active conditions" is part of this endpoint's stated description, but
-	// /api/v1/medical-conditions (its natural source) is documented as
-	// "Stub — not yet implemented" on the backend — this field may just
-	// never be populated until that lands. Key name is an undocumented guess.
-	activeConditions?: string[];
+	conditions?: ConditionData[];
 	updatedAt?: string;
 }
 

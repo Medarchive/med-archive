@@ -27,10 +27,6 @@ export default function CareIdentityPage() {
 	const { data: careId, isLoading } = useCareId();
 	const { data: medicalProfile } = useMedicalProfile();
 
-	// "Active conditions" is part of this endpoint's documented response,
-	// but /api/v1/medical-conditions (its source) is a backend stub — so
-	// this may stay empty until that's actually implemented, not because
-	// the patient has no conditions.
 	const healthOverview = [
 		{
 			label: "Blood Group",
@@ -58,8 +54,8 @@ export default function CareIdentityPage() {
 		},
 		{
 			label: "Active Conditions",
-			value: medicalProfile?.activeConditions?.length
-				? medicalProfile.activeConditions.join(", ")
+			value: medicalProfile?.conditions?.length
+				? medicalProfile.conditions.map((condition) => condition.name).join(", ")
 				: "None recorded",
 		},
 	];
