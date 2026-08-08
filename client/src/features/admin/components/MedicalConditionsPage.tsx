@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { TriangleAlert } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import InputField from "../../../components/ui/custom/InputField";
+import TableSkeleton from "../../../components/shared/skeletons/TableSkeleton";
 import {
 	Form,
 	FormControl,
@@ -14,6 +15,7 @@ import {
 	FormMessage,
 } from "../../../components/ui/form";
 import { useCreateMedicalCondition } from "../hooks";
+import { useMedicalConditions } from "../../med-history/hooks";
 
 const ConditionSchema = z.object({
 	name: z.string().trim().min(2, "Name is required").max(150, "Name is too long"),
@@ -28,7 +30,10 @@ const ConditionSchema = z.object({
 type ConditionValues = z.infer<typeof ConditionSchema>;
 
 export default function MedicalConditionsPage() {
+	const { data, isLoading } = useMedicalConditions({ take: 50 });
 	const { mutate: createCondition, isPending } = useCreateMedicalCondition();
+
+	const conditions = data?.data ?? [];
 
 	const form = useForm<ConditionValues>({
 		resolver: zodResolver(ConditionSchema),
@@ -55,15 +60,14 @@ export default function MedicalConditionsPage() {
 			<div className="flex items-start gap-2 rounded-[8px] border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
 				<TriangleAlert className="mt-0.5 size-4 shrink-0" />
 				<p>
-					The backend for this section is documented as{" "}
+					Editing or deactivating a condition isn&apos;t possible yet —
+					those endpoints are still documented as{" "}
 					<span className="font-semibold">
 						&quot;Stub — not yet implemented&quot;
-					</span>{" "}
-					with no request/response schema published — the fields below are a
-					best guess, not confirmed against a real response. There&apos;s
-					also no endpoint yet to list existing conditions, so this is
-					create-only for now; editing or deactivating a condition isn&apos;t
-					possible until that&apos;s built.
+					</span>
+					. Listing and creating are both live; creation&apos;s exact
+					request fields aren&apos;t published though, so the form below
+					is a best guess.
 				</p>
 			</div>
 
@@ -122,6 +126,48 @@ export default function MedicalConditionsPage() {
 					</form>
 				</Form>
 			</div>
+
+			{isLoading ? (
+				<TableSkeleton rows={6} columns={2} />
+			) : (
+				<div className="rounded-[12px] border border-[#F5F5F5] bg-white p-5">
+					<p className="mb-3 font-semibold">Active Conditions</p>
+
+					{conditions.length === 0 ? (
+						<p className="py-6 text-center text-sm text-[#9B9B9B]">
+							No conditions created yet
+						</p>
+					) : (
+						<div className="overflow-x-auto">
+							<table className="w-full min-w-100 text-sm">
+								<thead>
+									<tr className="text-left text-xs text-[#9B9B9B]">
+										<th className="whitespace-nowrap pb-3 pr-4 font-normal">
+											Name
+										</th>
+										<th className="whitespace-nowrap pb-3 font-normal">
+											Description
+										</th>
+									</tr>
+								</thead>
+
+								<tbody className="divide-y divide-[#F5F5F5]">
+									{conditions.map((condition) => (
+										<tr key={condition.id}>
+											<td className="whitespace-nowrap py-3 pr-4 font-medium">
+												{condition.name}
+											</td>
+											<td className="py-3 text-[#9B9B9B]">
+												{condition.description ?? "—"}
+											</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
+					)}
+				</div>
+			)}
 		</div>
 	);
 }

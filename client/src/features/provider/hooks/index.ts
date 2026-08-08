@@ -7,6 +7,7 @@ import { apiRoutes } from "../../../lib/config/apiRoutes";
 import { getApiErrorMessage } from "../../../lib/utils";
 import { ApiSuccessResponse, PaginatedData, PaginationParams } from "../../../types/api";
 import { ActivityLogEntry } from "../../admin/types";
+import { HealthRecordData } from "../../records/types";
 import {
 	PatientLookupResult,
 	ProviderProfileData,
@@ -126,6 +127,72 @@ export const useRequestRecordAccess = () => {
 		},
 		onError: (error) => {
 			toast.error(getApiErrorMessage(error));
+		},
+	});
+};
+
+// On-demand "check status" for a single tracked request — same
+// wrap-a-GET-as-a-mutation pattern as useLookupPatient, since it's
+// triggered by a button click for a specific id rather than tied to
+// mount. There's no plural GET for a provider's own requests (confirmed),
+// so this is the only way to learn whether one's since been approved.
+export const useRecordRequestStatus = () => {
+	const axiosAuth = useAxiosAuth();
+
+	return useMutation({
+		mutationFn: async (requestId: string) => {
+			const { data } = await axiosAuth.get<
+				ApiSuccessResponse<ProviderRecordRequestData>
+			>(apiRoutes.providerProfile.RECORD_REQUEST_BY_ID(requestId));
+
+			return data.data;
+		},
+		onError: (error) => {
+			toast.error(getApiErrorMessage(error, "Couldn't check this request's status"));
+		},
+	});
+};
+
+// The actual access-controlled read path — distinct from
+// PATIENT_RECORDS (patients/records, used by useLookupPatient), which
+// returns full record data regardless of approval. Routing "view record"
+// through this endpoint once a request is approved is real backend
+// enforcement, not just choosing not to render something client-side.
+export const useApprovedPatientRecords = (patientId: string | null) => {
+	const axiosAuth = useAxiosAuth();
+
+	return useQuery({
+		queryKey: ["provider", "approved-records", patientId],
+		queryFn: async () => {
+			const { data } = await axiosAuth.get<ApiSuccessResponse<HealthRecordData[]>>(
+				apiRoutes.providerProfile.PATIENT_APPROVED_RECORDS(patientId as string),
+			);
+
+			return data.data;
+		},
+		enabled: !!patientId,
+	});
+};
+
+export const useApprovedPatientRecord = () => {
+	const axiosAuth = useAxiosAuth();
+
+	return useMutation({
+		mutationFn: async ({
+			patientId,
+			recordId,
+		}: {
+			patientId: string;
+			recordId: string;
+		}) => {
+			const { data } = await axiosAuth.get<ApiSuccessResponse<HealthRecordData>>(
+				apiRoutes.providerProfile.PATIENT_APPROVED_RECORD_BY_ID(patientId, recordId),
+			);
+
+			return data.data;
+		},
+		onError: (error) => {
+			toast.error(getApiErrorMessage(error, "This record isn't accessible yet"));
 		},
 	});
 };

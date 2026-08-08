@@ -12,6 +12,7 @@ import {
 	UserRole,
 } from "../../../types/api";
 import { RequestStatus } from "../../provider-request/types";
+import { MEDICAL_CONDITIONS_QUERY_KEY } from "../../med-history/hooks";
 import {
 	AdminAccessRequestData,
 	AdminStatsData,
@@ -282,13 +283,15 @@ export const useAdminActivityLogs = (params: AdminActivityLogsParams = {}) => {
 	});
 };
 
-// POST /api/v1/medical-conditions ("[Admin] Create a medical condition") is
-// documented as "Stub — not yet implemented" with no request body schema
-// given at all — name/description below are a guess, not confirmed. There's
-// also no GET for this catalog, so this is deliberately create-only: no way
-// to list what exists to build edit/deactivate against.
+// POST /api/v1/medical-conditions ("[Admin] Create a medical condition") —
+// request body schema still isn't published, so name/description below are
+// a guess, not confirmed. GET on this same path is real now though (see
+// features/med-history/hooks' useMedicalConditions), so this at least has a
+// real list to invalidate into — PUT/DELETE (edit/deactivate) are still
+// documented stubs.
 export const useCreateMedicalCondition = () => {
 	const axiosAuth = useAxiosAuth();
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: async (payload: { name: string; description?: string }) => {
@@ -300,6 +303,7 @@ export const useCreateMedicalCondition = () => {
 			return data;
 		},
 		onSuccess: (data) => {
+			queryClient.invalidateQueries({ queryKey: MEDICAL_CONDITIONS_QUERY_KEY });
 			toast.success(data.message || "Condition created");
 		},
 		onError: (error) => {

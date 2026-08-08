@@ -107,6 +107,11 @@ export default function ProviderRequestDetailModal({
 							</Button>
 						</div>
 					) : (
+						// No revoke action here even for APPROVED — confirmed the API
+						// has no mechanism for it at all (PATCH .../access-requests/{id}
+						// only ever accepts APPROVED/DECLINED, no REVOKED, no DELETE).
+						// Add one the moment that lands; a button with nothing to call
+						// would be worse than not having it.
 						<div className="flex items-center justify-between gap-4">
 							<p className="text-sm font-semibold">Status</p>
 							<StatusBadge status={request.status} />

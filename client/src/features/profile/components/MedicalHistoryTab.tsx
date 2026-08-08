@@ -10,16 +10,10 @@ import {
 	FormMessage,
 } from "../../../components/ui/form";
 import { useMedicalProfile } from "../../medical-profile/hooks";
-import { useUpdateMedHistory } from "../../med-history/hooks";
+import { useMedicalConditions, useUpdateMedHistory } from "../../med-history/hooks";
 import ProfileFormFooter from "./ProfileFormFooter";
 import ProfileSkeleton from "../../../components/shared/skeletons/ProfileSkeleton";
 
-// Only `currentlyTakingMedication` from this endpoint's fields is actually
-// usable here. Conditions (diabetes, hypertension, etc.) are the other half
-// of what /api/v1/med-history is meant for, but its source catalog
-// (/api/v1/medical-conditions) is documented as "Stub — not yet
-// implemented" — no GET, admin-only — so there's no real list of conditions
-// to build a picker against yet. Revisit once that endpoint is live.
 const MedicalHistorySchema = z.object({
 	currently_taking_medication: z.enum(["yes", "no"], {
 		error: "Please select an option",
@@ -30,11 +24,18 @@ type MedicalHistoryValues = z.infer<typeof MedicalHistorySchema>;
 
 export default function MedicalHistoryTab() {
 	const [isEditing, setIsEditing] = useState(false);
+	const [selectedConditionIds, setSelectedConditionIds] = useState<string[]>([]);
+
 	// There's no GET for med-history itself, but medical-profile mirrors the
 	// same `currentlyTakingMedication` flag — reuse that to prefill instead
 	// of always defaulting to blank.
-	const { data: medicalProfile, isLoading } = useMedicalProfile();
+	const { data: medicalProfile, isLoading: isProfileLoading } = useMedicalProfile();
+	const { data: conditionsData, isLoading: isConditionsLoading } = useMedicalConditions({
+		take: 100,
+	});
 	const { mutate: updateMedHistory, isPending } = useUpdateMedHistory();
+
+	const conditions = conditionsData?.data ?? [];
 
 	const form = useForm<MedicalHistoryValues>({
 		resolver: zodResolver(MedicalHistorySchema),
@@ -61,17 +62,30 @@ export default function MedicalHistoryTab() {
 
 	const disabled = !isEditing;
 
-	const onSubmit = (values: MedicalHistoryValues) => {
-		updateMedHistory(
-			{
-				conditionIds: [],
-				currentlyTakingMedication: values.currently_taking_medication === "yes",
-			},
-			{ onSuccess: () => setIsEditing(false) },
+	const toggleCondition = (id: string) => {
+		if (disabled) return;
+
+		setSelectedConditionIds((prev) =>
+			prev.includes(id) ? prev.filter((existing) => existing !== id) : [...prev, id],
 		);
 	};
 
-	if (isLoading) {
+	const onSubmit = (values: MedicalHistoryValues) => {
+		updateMedHistory(
+			{
+				conditionIds: selectedConditionIds,
+				currentlyTakingMedication: values.currently_taking_medication === "yes",
+			},
+			{
+				onSuccess: () => {
+					setIsEditing(false);
+					setSelectedConditionIds([]);
+				},
+			},
+		);
+	};
+
+	if (isProfileLoading) {
 		return <ProfileSkeleton />;
 	}
 
@@ -121,10 +135,45 @@ export default function MedicalHistoryTab() {
 					)}
 				/>
 
-				<div className="rounded-[8px] border border-dashed border-[#E5E5E5] p-3 text-sm text-[#9B9B9B]">
-					Existing conditions (diabetes, hypertension, etc.) will be
-					selectable here once that part of the system is switched on —
-					it isn&apos;t yet.
+				<div>
+					<label className="text-sm font-medium">Existing Conditions</label>
+
+					{/* There's no GET for the patient's own med-history, so we can't
+					    tell which conditions are already saved — everything here
+					    starts unchecked. Submitting is still safe either way: the
+					    backend's POST /med-history silently ignores duplicates
+					    rather than erroring on ones already on file. */}
+					<p className="mt-1 text-xs text-[#9B9B9B]">
+						Select any that apply. Previously saved conditions won&apos;t
+						show as pre-checked here, but re-selecting them won&apos;t
+						cause duplicates.
+					</p>
+
+					{isConditionsLoading ? (
+						<p className="mt-3 text-sm text-[#9B9B9B]">Loading conditions...</p>
+					) : conditions.length === 0 ? (
+						<p className="mt-3 text-sm text-[#9B9B9B]">
+							No conditions available to select yet.
+						</p>
+					) : (
+						<div className="mt-3 grid gap-2 sm:grid-cols-2">
+							{conditions.map((condition) => (
+								<label
+									key={condition.id}
+									className="flex items-center gap-2 text-sm cursor-pointer"
+								>
+									<input
+										type="checkbox"
+										checked={selectedConditionIds.includes(condition.id)}
+										onChange={() => toggleCondition(condition.id)}
+										disabled={disabled}
+										className="accent-primary size-4"
+									/>
+									{condition.name}
+								</label>
+							))}
+						</div>
+					)}
 				</div>
 
 				<ProfileFormFooter

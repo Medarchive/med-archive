@@ -112,6 +112,10 @@ export default function ProviderRequestTable({
 											</Button>
 										</div>
 									) : (
+										// No revoke action for APPROVED rows — the API has no
+										// mechanism for it (confirmed: PATCH only accepts
+										// APPROVED/DECLINED, no REVOKED, no DELETE). Add it here
+										// once that exists.
 										<StatusBadge status={request.status} />
 									)}
 								</td>

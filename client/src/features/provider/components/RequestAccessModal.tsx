@@ -13,8 +13,7 @@ import {
 	FormItem,
 	FormMessage,
 } from "../../../components/ui/form";
-import { useRequestRecordAccess } from "../hooks";
-import { PatientLookupParams } from "../hooks";
+import { useRequestRecordAccess, PatientLookupParams } from "../hooks";
 
 const RequestAccessSchema = z.object({
 	requestType: z
@@ -34,12 +33,20 @@ interface RequestAccessModalProps {
 	// request targets the same patient without asking the provider to
 	// re-enter it.
 	patientIdentifier: PatientLookupParams;
+	// Scoped to one specific record picked from the lookup's title dropdown
+	// — not a blanket "everything" request.
+	recordId: string;
+	recordTitle: string;
+	onRequested: (requestId: string) => void;
 }
 
 export default function RequestAccessModal({
 	open,
 	onClose,
 	patientIdentifier,
+	recordId,
+	recordTitle,
+	onRequested,
 }: RequestAccessModalProps) {
 	const { mutate: requestAccess, isPending } = useRequestRecordAccess();
 
@@ -58,11 +65,13 @@ export default function RequestAccessModal({
 		requestAccess(
 			{
 				...patientIdentifier,
+				recordId,
 				requestType: values.requestType,
 				note: values.note || undefined,
 			},
 			{
-				onSuccess: () => {
+				onSuccess: (data) => {
+					onRequested(data.data.id);
 					form.reset();
 					onClose();
 				},
@@ -72,6 +81,11 @@ export default function RequestAccessModal({
 
 	return (
 		<Modal open={open} onClose={onClose} title="Request Access">
+			<div className="mb-4 rounded-[8px] border border-[#F5F5F5] bg-[#FAFAFA] px-3 py-2 text-sm">
+				<span className="text-[#9B9B9B]">Requesting access to </span>
+				<span className="font-semibold">{recordTitle}</span>
+			</div>
+
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 					<FormField
