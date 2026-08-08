@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Copy, Check, QrCode, Download, Share2 } from "lucide-react";
+import { Copy, Check, Share2 } from "lucide-react";
 import { useGenerateShareLink } from "../hooks";
 
 interface CareIdHeroCardProps {
@@ -39,12 +39,17 @@ export default function CareIdHeroCard({
 		});
 	};
 
-	const handleDownloadQr = () => {
-		toast.success("QR code downloaded");
-	};
+	// QR code display/download commented out — there's no real QR image
+	// being generated anywhere (the icon was a placeholder and
+	// "Download QR" never actually downloaded anything). Layout below is
+	// redesigned to a 2-column split now that the center panel is gone;
+	// Share Link (which does hit a real endpoint) moved into the left column.
+	// const handleDownloadQr = () => {
+	// 	toast.success("QR code downloaded");
+	// };
 
 	return (
-		<div className="grid grid-cols-1 gap-8 rounded-xl bg-primary/10 p-5 md:grid-cols-2 xl:grid-cols-3 xl:items-center">
+		<div className="grid grid-cols-1 gap-8 rounded-xl bg-primary/10 p-5 md:grid-cols-2 md:items-center">
 			{/* Left */}
 			<div className="space-y-5">
 				<div>
@@ -75,15 +80,22 @@ export default function CareIdHeroCard({
 						Status <span className="font-semibold text-black">{status}</span>
 					</p>
 				</div>
-			</div>
 
-			{/* Center */}
-			<div className="flex flex-col items-center gap-4">
-				<div className="flex size-28 items-center justify-center rounded-lg border border-black/10 bg-white">
-					<QrCode className="size-16" />
-				</div>
+				<button
+					type="button"
+					onClick={handleShareLink}
+					disabled={isSharing}
+					className="flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-medium transition hover:bg-black/5 disabled:opacity-60"
+				>
+					<Share2 className="size-3.5" />
+					{isSharing ? "Generating..." : "Share Link"}
+				</button>
 
-				<div className="flex flex-wrap justify-center gap-3">
+				{/* <div className="flex flex-col items-center gap-4">
+					<div className="flex size-28 items-center justify-center rounded-lg border border-black/10 bg-white">
+						<QrCode className="size-16" />
+					</div>
+
 					<button
 						type="button"
 						onClick={handleDownloadQr}
@@ -92,21 +104,11 @@ export default function CareIdHeroCard({
 						<Download className="size-3.5" />
 						Download QR
 					</button>
-
-					<button
-						type="button"
-						onClick={handleShareLink}
-						disabled={isSharing}
-						className="flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-medium transition hover:bg-black/5 disabled:opacity-60"
-					>
-						<Share2 className="size-3.5" />
-						{isSharing ? "Generating..." : "Share Link"}
-					</button>
-				</div>
+				</div> */}
 			</div>
 
 			{/* Right */}
-			<div className="space-y-5 xl:text-right">
+			<div className="space-y-5 md:text-right">
 				<div>
 					<p className="text-sm text-[#4B4B4B]">Wallet Address</p>
 
@@ -121,64 +123,4 @@ export default function CareIdHeroCard({
 			</div>
 		</div>
 	);
-	// <div className="grid grid-cols-1 gap-6 rounded-[12px] bg-primary/10 p-6 sm:grid-cols-3 max-sm:justify-center">
-	// 	<div className="place-self-center w-full max-sm:flex items-center justify-between gap-1">
-	// 		<p className="text-sm text-[#4B4B4B]">Care ID</p>
-
-	// 		<div className="max-sm:mt-2 flex items-center gap-2">
-	// 			<p className="text-2xl font-bold whitespace-nowrap">{careId}</p>
-
-	// 			<button
-	// 				type="button"
-	// 				onClick={handleCopyId}
-	// 				className="flex items-center gap-1 rounded-full border border-black/10 bg-white px-2.5 py-1 text-xs font-medium duration-150 hover:bg-black/5"
-	// 			>
-	// 				{copied ? (
-	// 					<Check className="size-3.5" />
-	// 				) : (
-	// 					<Copy className="size-3.5" />
-	// 				)}
-	// 				Copy ID
-	// 			</button>
-	// 		</div>
-
-	// 		<p className="max-sm:mt-6 text-sm text-[#4B4B4B]">
-	// 			Status: <span className="font-semibold text-black">{status}</span>
-	// 		</p>
-	// 	</div>
-
-	// 	<div className="flex flex-col items-start gap-3 place-self-center">
-	// 		<div className="flex size-24 items-center justify-center rounded-[8px] border border-black/10 bg-white mx-auto">
-	// 			<QrCode className="size-16" />
-	// 		</div>
-
-	// 		<button
-	// 			type="button"
-	// 			onClick={handleDownloadQr}
-	// 			className="flex items-center gap-2 rounded-full bg-black px-4 py-2 text-xs font-medium text-white duration-150 hover:bg-black/80"
-	// 		>
-	// 			<Download className="size-3.5" />
-	// 			Download QR
-	// 		</button>
-
-	// 		<button
-	// 			type="button"
-	// 			onClick={handleShareLink}
-	// 			className="flex items-center gap-1.5 text-sm font-medium text-[#4B4B4B] duration-150 hover:text-primary"
-	// 		>
-	// 			<Share2 className="size-3.5" />
-	// 			Share Secure Link
-	// 		</button>
-	// 	</div>
-
-	// 	<div className="place-self-center">
-	// 		<p className="text-sm text-[#4B4B4B]">Wallet Address</p>
-	// 		<p className="font-semibold">{walletAddress}</p>
-
-	// 		<p className="mt-6 text-sm text-[#4B4B4B]">
-	// 			Created Date:{" "}
-	// 			<span className="font-semibold text-black">{createdDate}</span>
-	// 		</p>
-	// 	</div>
-	// </div>
 }
