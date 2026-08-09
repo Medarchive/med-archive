@@ -6,7 +6,7 @@ import TableSkeleton from "../../../components/shared/skeletons/TableSkeleton";
 import ConfirmModal from "../../../components/ui/custom/ConfirmModal";
 import { Button } from "../../../components/ui/button";
 import { useHeaderStore } from "../../../lib/stores/header-store";
-import { useAdminUsers,  useDeleteUser } from "../hooks";
+import { useAdminUsers, useDeleteUser, useVerifyProvider } from "../hooks";
 import { UserRole } from "../../../types/api";
 import { AdminUserSummary } from "../types";
 import UserDetailModal from "./UserDetailModal";
@@ -31,7 +31,9 @@ export default function UsersTable() {
 	const [roleFilter, setRoleFilter] = useState<RoleFilter>("ALL");
 	const [search, setSearch] = useState("");
 	const [currentPage, setCurrentPage] = useState(1);
-	const [selectedUser, setSelectedUser] = useState<AdminUserSummary | null>(null);
+	const [selectedUser, setSelectedUser] = useState<AdminUserSummary | null>(
+		null,
+	);
 	const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
 	// Driven by the header's shared search box (see AdminHeader), not a
@@ -55,7 +57,8 @@ export default function UsersTable() {
 		take: 10,
 	});
 
-	// const { mutate: verifyProvider, isPending: isVerifying } = useVerifyProvider();
+	const { mutate: verifyProvider, isPending: isVerifying } =
+		useVerifyProvider();
 	const { mutate: deleteUser, isPending: isDeleting } = useDeleteUser();
 
 	const users = data?.data ?? [];
@@ -96,11 +99,21 @@ export default function UsersTable() {
 					<table className="w-full min-w-240 text-sm">
 						<thead>
 							<tr className="text-left text-xs text-[#9B9B9B]">
-								<th className="whitespace-nowrap pb-3 pr-4 font-normal">Name</th>
-								<th className="whitespace-nowrap pb-3 pr-4 font-normal">Email</th>
-								<th className="whitespace-nowrap pb-3 pr-4 font-normal">Role</th>
-								<th className="whitespace-nowrap pb-3 pr-4 font-normal">Gender</th>
-								<th className="whitespace-nowrap pb-3 pr-4 font-normal">Joined</th>
+								<th className="whitespace-nowrap pb-3 pr-4 font-normal">
+									Name
+								</th>
+								<th className="whitespace-nowrap pb-3 pr-4 font-normal">
+									Email
+								</th>
+								<th className="whitespace-nowrap pb-3 pr-4 font-normal">
+									Role
+								</th>
+								<th className="whitespace-nowrap pb-3 pr-4 font-normal">
+									Gender
+								</th>
+								<th className="whitespace-nowrap pb-3 pr-4 font-normal">
+									Joined
+								</th>
 								<th className="whitespace-nowrap pb-3 font-normal text-right">
 									Actions
 								</th>
@@ -122,7 +135,7 @@ export default function UsersTable() {
 								// response) — show Verify for every provider row rather
 								// than guess; the backend just returns "already verified"
 								// gracefully (handled below) if it's clicked on one that is.
-								// const needsVerification = user.role === "PROVIDER";
+								const needsVerification = user.role === "PROVIDER";
 
 								return (
 									<tr
@@ -151,7 +164,7 @@ export default function UsersTable() {
 												className="flex justify-end gap-2"
 												onClick={(e) => e.stopPropagation()}
 											>
-												{/* {needsVerification && (
+												{needsVerification && (
 													<Button
 														size="sm"
 														isLoading={isVerifying}
@@ -159,7 +172,7 @@ export default function UsersTable() {
 													>
 														Verify
 													</Button>
-												)} */}
+												)}
 
 												<Button
 													size="sm"
@@ -186,7 +199,10 @@ export default function UsersTable() {
 				</div>
 			</div>
 
-			<UserDetailModal user={selectedUser} onClose={() => setSelectedUser(null)} />
+			<UserDetailModal
+				user={selectedUser}
+				onClose={() => setSelectedUser(null)}
+			/>
 
 			<ConfirmModal
 				open={!!confirmDeleteId}
@@ -194,7 +210,9 @@ export default function UsersTable() {
 				isLoading={isDeleting}
 				onConfirm={() => {
 					if (!confirmDeleteId) return;
-					deleteUser(confirmDeleteId, { onSuccess: () => setConfirmDeleteId(null) });
+					deleteUser(confirmDeleteId, {
+						onSuccess: () => setConfirmDeleteId(null),
+					});
 				}}
 				onCancel={() => setConfirmDeleteId(null)}
 			/>
