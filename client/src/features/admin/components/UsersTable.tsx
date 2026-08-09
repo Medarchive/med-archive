@@ -153,7 +153,7 @@ export default function UsersTable() {
 											{user.email}
 										</td>
 										<td className="whitespace-nowrap py-3 pr-4 text-[#9B9B9B]">
-											<div className="flex items-center gap-2">
+											<div className="flex items-center gap-2 mx-auto">
 												{user.role}
 												{user.role === "PROVIDER" && user.providerStatus && (
 													<StatusBadge
