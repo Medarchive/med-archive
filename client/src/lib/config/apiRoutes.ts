@@ -25,9 +25,9 @@ export const apiRoutes = {
 
 	users: {
 		ME: "/api/v1/users/me",
-		LIST: "/api/v1/users",
-		BY_ID: (id: string) => `/api/v1/users/${id}`,
-		VERIFY_PROVIDER: (id: string) => `/api/v1/users/${id}/verify-provider`,
+		LIST: "/api/v1/admin/users",
+		BY_ID: (id: string) => `/api/v1/admin/users/${id}`,
+		VERIFY_PROVIDER: (id: string) => `/api/v1/admin/users/${id}/verify-provider`,
 	},
 
 	admin: {
