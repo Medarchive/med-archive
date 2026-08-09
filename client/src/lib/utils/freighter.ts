@@ -115,6 +115,24 @@ export const assertAllowedFreighterNetwork = (freighterNetwork: string) => {
 // base64 string straight through fails verification with a 401 that gives
 // no hint the encoding was the problem. Normalize whichever shape/encoding
 // Freighter handed back into the hex the API actually wants.
+//
+// Separate, deeper issue confirmed after fixing the above (still 401s with
+// "Wallet signature verification failed" even once the encoding is
+// correct): freighter.signMessage() implements SEP-53 — it doesn't sign the
+// raw nonce string. It signs SHA256("Stellar Signed Message:\n" + nonce),
+// per the SEP-53 spec (github.com/orgs/stellar/discussions/1641). A manual
+// test using a raw Keypair.sign(nonce) (no SEP-53 wrapping) verified fine
+// against the live API, which means the backend is currently checking the
+// signature against the raw nonce bytes, not the SEP-53-wrapped hash — so
+// anything actually signed through Freighter (or any other SEP-53-compliant
+// wallet) will always fail here. This can't be worked around client-side:
+// Freighter deliberately doesn't expose a "sign these exact bytes, no
+// wrapping" API (that's the anti-blind-signing protection SEP-53 exists
+// for) — only signTransaction (XDR) and signMessage (SEP-53) are available.
+// The backend needs to verify against SHA256("Stellar Signed
+// Message:\n" + nonce) instead — e.g. Utils.verifyMessageSignature() in
+// @stellar/stellar-sdk for a JS backend — for both /wallet/verify and
+// /auth/use-wallet, since both go through this same signMessage() call.
 // ---------------------------------------------------------------------
 const isHexString = (value: string) => /^[0-9a-f]+$/i.test(value) && value.length % 2 === 0;
 

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Users, Mail, Share2, Wallet, History, Megaphone } from "lucide-react";
 import StatCard from "../../overview/components/StatCard";
-import TableSkeleton from "../../../components/shared/skeletons/TableSkeleton";
+import AdminOverviewSkeleton from "../../../components/shared/skeletons/AdminOverviewSkeleton";
 import { pageRoutes } from "../../../lib/config/routes";
 import { useAdminStats } from "../hooks";
 import { useHasMounted } from "../../../hooks/useHasMounted";
@@ -26,7 +26,7 @@ export default function AdminOverview() {
 	const { data: stats, isLoading } = useAdminStats();
 
 	if (!hasMounted || isLoading) {
-		return <TableSkeleton rows={2} columns={4} />;
+		return <AdminOverviewSkeleton />;
 	}
 
 	const totalUsers = stats

@@ -127,11 +127,11 @@ export const useConnectWallet = () => {
 
 			const signature = toHexSignature(signed.signedMessage);
 
-			const { data } = await axiosAuth.post<ApiSuccessResponse<unknown>>(
+			const { data } = await axiosAuth.post<ApiSuccessResponse<WalletData>>(
 				apiRoutes.wallet.VERIFY,
 				{ nonce, signature },
 			);
-			console.log("wallet details from freighter", data);
+
 			return data;
 		},
 		onSuccess: (data) => {

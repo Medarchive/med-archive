@@ -1,11 +1,23 @@
 export type WalletNetwork = "MAINNET" | "TESTNET";
 
+// Confirmed against a real POST /wallet/verify response. `balance` isn't
+// part of that raw entity — it's presumably populated separately by GET
+// /wallet via a live Horizon lookup (still unconfirmed against a real GET
+// response, kept as the pre-existing assumption). `encryptedSecret` is real
+// but always null in this app's flows (Freighter signature-based linking,
+// never custodial secret storage) — typed for completeness only, never
+// rendered.
 export interface WalletData {
+	id?: string;
+	userId?: string;
 	address: string;
 	network: WalletNetwork;
 	label?: string | null;
 	balance: string | null; // null if the account is unfunded
 	verifiedAt?: string | null;
+	createdAt?: string;
+	updatedAt?: string;
+	encryptedSecret?: string | null;
 }
 
 export interface LinkWalletResponseData {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { TriangleAlert, Search, User, History } from "lucide-react";
-import TableSkeleton from "../../../components/shared/skeletons/TableSkeleton";
+import ProviderOverviewSkeleton from "../../../components/shared/skeletons/ProviderOverviewSkeleton";
 import { pageRoutes } from "../../../lib/config/routes";
 import { useProviderProfile } from "../hooks";
 import { useHasMounted } from "../../../hooks/useHasMounted";
@@ -25,7 +25,7 @@ export default function ProviderOverview() {
 	const { data: profile, isLoading } = useProviderProfile();
 
 	if (!hasMounted || isLoading) {
-		return <TableSkeleton rows={2} columns={4} />;
+		return <ProviderOverviewSkeleton />;
 	}
 
 	const displayName = [profile?.title, profile?.firstName, profile?.lastName]

@@ -14,7 +14,7 @@ import {
 	FormMessage,
 } from "../../../components/ui/form";
 import ProfileFormFooter from "../../profile/components/ProfileFormFooter";
-import ProfileSkeleton from "../../../components/shared/skeletons/ProfileSkeleton";
+import ProviderProfileSkeleton from "../../../components/shared/skeletons/ProviderProfileSkeleton";
 import {
 	useProviderProfile,
 	useUpdateProviderProfile,
@@ -127,7 +127,7 @@ export default function ProviderProfileForm() {
 	};
 
 	if (isLoading) {
-		return <ProfileSkeleton />;
+		return <ProviderProfileSkeleton />;
 	}
 
 	return (
