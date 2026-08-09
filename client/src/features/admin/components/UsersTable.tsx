@@ -6,7 +6,7 @@ import TableSkeleton from "../../../components/shared/skeletons/TableSkeleton";
 import ConfirmModal from "../../../components/ui/custom/ConfirmModal";
 import { Button } from "../../../components/ui/button";
 import { useHeaderStore } from "../../../lib/stores/header-store";
-import { useAdminUsers, useVerifyProvider, useDeleteUser } from "../hooks";
+import { useAdminUsers,  useDeleteUser } from "../hooks";
 import { UserRole } from "../../../types/api";
 import { AdminUserSummary } from "../types";
 import UserDetailModal from "./UserDetailModal";
@@ -55,7 +55,7 @@ export default function UsersTable() {
 		take: 10,
 	});
 
-	const { mutate: verifyProvider, isPending: isVerifying } = useVerifyProvider();
+	// const { mutate: verifyProvider, isPending: isVerifying } = useVerifyProvider();
 	const { mutate: deleteUser, isPending: isDeleting } = useDeleteUser();
 
 	const users = data?.data ?? [];
@@ -122,7 +122,7 @@ export default function UsersTable() {
 								// response) — show Verify for every provider row rather
 								// than guess; the backend just returns "already verified"
 								// gracefully (handled below) if it's clicked on one that is.
-								const needsVerification = user.role === "PROVIDER";
+								// const needsVerification = user.role === "PROVIDER";
 
 								return (
 									<tr
@@ -151,7 +151,7 @@ export default function UsersTable() {
 												className="flex justify-end gap-2"
 												onClick={(e) => e.stopPropagation()}
 											>
-												{needsVerification && (
+												{/* {needsVerification && (
 													<Button
 														size="sm"
 														isLoading={isVerifying}
@@ -159,7 +159,7 @@ export default function UsersTable() {
 													>
 														Verify
 													</Button>
-												)}
+												)} */}
 
 												<Button
 													size="sm"
