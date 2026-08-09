@@ -15,6 +15,7 @@ import {
 	RequestRecordAccessPayload,
 	UpdateProviderProfilePayload,
 } from "../types";
+import { RequestStatus } from "../../provider-request/types";
 
 export const PROVIDER_PROFILE_QUERY_KEY = ["provider", "profile"];
 export const PROVIDER_ACTIVITY_QUERY_KEY = ["provider", "activity"];
@@ -127,6 +128,32 @@ export const useRequestRecordAccess = () => {
 		},
 		onError: (error) => {
 			toast.error(getApiErrorMessage(error));
+		},
+	});
+};
+
+export interface ProviderRecordRequestsParams
+	extends Omit<PaginationParams, "sortOrder"> {
+	status?: RequestStatus;
+	// The backend validates lowercase values (`asc` / `desc`).
+	sortOrder?: "asc" | "desc";
+}
+
+// Provider audit/history view. A REVOKED row remains visible but contains
+// `record: null`; consumers must never fall back to a cached record there.
+export const useProviderRecordRequests = (
+	params: ProviderRecordRequestsParams = {},
+) => {
+	const axiosAuth = useAxiosAuth();
+
+	return useQuery({
+		queryKey: ["provider", "record-requests", params],
+		queryFn: async () => {
+			const { data } = await axiosAuth.get<
+				ApiSuccessResponse<PaginatedData<ProviderRecordRequestData>>
+			>(apiRoutes.providerProfile.RECORD_REQUESTS, { params });
+
+			return data.data;
 		},
 	});
 };

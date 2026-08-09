@@ -64,3 +64,25 @@ export const useRespondToAccessRequest = () => {
 		},
 	});
 };
+
+export const useRevokeAccessRequest = () => {
+	const axiosAuth = useAxiosAuth();
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: async (id: string) => {
+			const { data } = await axiosAuth.patch<ApiSuccessResponse<AccessRequestData>>(
+				apiRoutes.healthRecords.REVOKE_ACCESS_REQUEST(id),
+			);
+
+			return data;
+		},
+		onSuccess: (data) => {
+			queryClient.invalidateQueries({ queryKey: ACCESS_REQUESTS_QUERY_KEY });
+			toast.success(data.message || "Record access revoked");
+		},
+		onError: (error) => {
+			toast.error(getApiErrorMessage(error, "Couldn't revoke record access"));
+		},
+	});
+};

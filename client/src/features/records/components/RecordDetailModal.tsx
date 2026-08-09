@@ -94,7 +94,9 @@ export default function RecordDetailModal({ record, onClose }: RecordDetailModal
 						{isProofLoading ? (
 							<p className="text-sm text-[#9B9B9B]">Checking...</p>
 						) : proof ? (
-							<ZkProofBadge status={proof.proofStatus} />
+							<ZkProofBadge
+								status={proof.proofStatus ?? proof.zkProofStatus ?? proof.status}
+							/>
 						) : (
 							<p className="text-sm text-[#9B9B9B]">Not available</p>
 						)}
@@ -131,7 +133,7 @@ export default function RecordDetailModal({ record, onClose }: RecordDetailModal
 					)}
 
 					<div className="flex items-center justify-between gap-4 pt-2">
-						{proof?.proofStatus === "PENDING" || !proof ? (
+						{(proof?.proofStatus ?? proof?.zkProofStatus ?? proof?.status) === "PENDING" || !proof ? (
 							<button
 								type="button"
 								onClick={handleVerify}

@@ -38,6 +38,7 @@ export const pageRoutes = {
 	providerRoutes: {
 		DASHBOARD: "/provider",
 		PATIENTS: "/provider/patients",
+		RECORD_REQUESTS: "/provider/record-requests",
 		PROFILE: "/provider/profile",
 		ACTIVITY: "/provider/activity",
 	},

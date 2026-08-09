@@ -7,7 +7,9 @@ interface ProviderRequestDetailModalProps {
 	request: AccessRequestData | null;
 	onClose: () => void;
 	onDecision: (id: string, approved: boolean) => void;
+	onRevoke: (id: string) => void;
 	isResponding: boolean;
+	isRevoking: boolean;
 }
 
 const formatDate = (value?: string | null) => {
@@ -21,7 +23,9 @@ export default function ProviderRequestDetailModal({
 	request,
 	onClose,
 	onDecision,
+	onRevoke,
 	isResponding,
+	isRevoking,
 }: ProviderRequestDetailModalProps) {
 	return (
 		<Modal open={!!request} onClose={onClose}>
@@ -114,7 +118,19 @@ export default function ProviderRequestDetailModal({
 						// would be worse than not having it.
 						<div className="flex items-center justify-between gap-4">
 							<p className="text-sm font-semibold">Status</p>
-							<StatusBadge status={request.status} />
+							<div className="flex items-center gap-2">
+								<StatusBadge status={request.status} />
+								{request.status === "APPROVED" && (
+									<Button
+										size="sm"
+										variant="destructive"
+										isLoading={isRevoking}
+										onClick={() => onRevoke(request.id)}
+									>
+										Revoke Access
+									</Button>
+								)}
+							</div>
 						</div>
 					)}
 				</div>

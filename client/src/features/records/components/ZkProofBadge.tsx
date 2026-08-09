@@ -2,7 +2,7 @@ import StatusBadge, { BadgeVariant } from "../../../components/shared/StatusBadg
 import { ProofStatus } from "../types";
 
 const config: Record<string, { label: string; variant: BadgeVariant }> = {
-	VERIFIED: { label: "Verified", variant: "success" },
+	GENERATED: { label: "Generated", variant: "success" },
 	FAILED: { label: "Failed", variant: "error" },
 	PENDING: { label: "Pending", variant: "warning" },
 };
@@ -19,7 +19,7 @@ const humanize = (value: string) =>
 export default function ZkProofBadge({
 	status,
 }: {
-	status: ProofStatus | (string & {});
+	status?: ProofStatus | (string & {});
 }) {
 	const known = status ? config[status.toUpperCase()] : undefined;
 	const label = known?.label ?? (status ? humanize(status) : "Unknown");

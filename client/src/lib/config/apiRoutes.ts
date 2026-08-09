@@ -61,6 +61,8 @@ export const apiRoutes = {
 		ACCESS_REQUESTS: "/api/v1/health-records/access-requests",
 		ACCESS_REQUEST_BY_ID: (id: string) =>
 			`/api/v1/health-records/access-requests/${id}`,
+		REVOKE_ACCESS_REQUEST: (id: string) =>
+			`/api/v1/health-records/access-requests/${id}/revoke`,
 	},
 
 	emergencyContacts: {

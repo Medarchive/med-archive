@@ -42,6 +42,7 @@ const statusStyles: Record<RequestStatus, string> = {
 	PENDING: "bg-amber-50 text-amber-800 border-amber-200",
 	APPROVED: "bg-green-50 text-green-700 border-green-200",
 	DECLINED: "bg-red-50 text-red-700 border-red-200",
+	REVOKED: "bg-red-50 text-red-700 border-red-200",
 };
 
 export default function PatientLookupPage() {

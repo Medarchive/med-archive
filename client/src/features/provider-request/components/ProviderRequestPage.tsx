@@ -2,13 +2,17 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { useAccessRequests, useRespondToAccessRequest } from "../hooks";
+import {
+	useAccessRequests,
+	useRespondToAccessRequest,
+	useRevokeAccessRequest,
+} from "../hooks";
 import { AccessRequestData, RequestStatus } from "../types";
 import ProviderRequestTable from "./ProviderRequestTable";
 import ProviderRequestEmptyState from "./ProviderRequestEmptyState";
 import ProviderRequestDetailModal from "./ProviderRequestDetailModal";
 
-type Filter = "all" | "APPROVED" | "DECLINED";
+type Filter = "all" | "APPROVED" | "DECLINED" | "REVOKED";
 
 export default function ProviderRequestPage() {
 	const [filter, setFilter] = useState<Filter>("all");
@@ -23,6 +27,7 @@ export default function ProviderRequestPage() {
 		take: 8,
 	});
 	const { mutate: respond, isPending: isResponding } = useRespondToAccessRequest();
+	const { mutate: revoke, isPending: isRevoking } = useRevokeAccessRequest();
 
 	const requests = data?.data ?? [];
 	const totalPages = data?.meta.totalPages ?? 1;
@@ -30,6 +35,16 @@ export default function ProviderRequestPage() {
 	const handleFilterChange = (value: Filter) => {
 		setFilter(value);
 		setCurrentPage(1);
+	};
+
+	const handleRevoke = (id: string) => {
+		revoke(id, {
+			onSuccess: () => {
+				setSelectedRequest((prev) =>
+					prev && prev.id === id ? { ...prev, status: "REVOKED" } : prev,
+				);
+			},
+		});
 	};
 
 	const handleDecision = (id: string, approved: boolean) => {
@@ -61,6 +76,7 @@ export default function ProviderRequestPage() {
 						<option value="all">All</option>
 						<option value="APPROVED">Approved</option>
 						<option value="DECLINED">Declined</option>
+						<option value="REVOKED">Revoked</option>
 					</select>
 
 					<ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-[#9B9B9B]" />
@@ -77,7 +93,9 @@ export default function ProviderRequestPage() {
 					onPageChange={setCurrentPage}
 					onRowClick={setSelectedRequest}
 					onDecision={handleDecision}
+					onRevoke={handleRevoke}
 					isResponding={isResponding}
+					isRevoking={isRevoking}
 				/>
 			)}
 
@@ -85,7 +103,9 @@ export default function ProviderRequestPage() {
 				request={selectedRequest}
 				onClose={() => setSelectedRequest(null)}
 				onDecision={handleDecision}
+				onRevoke={handleRevoke}
 				isResponding={isResponding}
+				isRevoking={isRevoking}
 			/>
 		</div>
 	);

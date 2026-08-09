@@ -7,6 +7,7 @@ const statusConfig: Record<RequestStatus, { label: string; variant: BadgeVariant
 	APPROVED: { label: "Approved", variant: "success" },
 	DECLINED: { label: "Declined", variant: "error" },
 	PENDING: { label: "Pending", variant: "warning" },
+	REVOKED: { label: "Revoked", variant: "error" },
 };
 
 export default function StatusBadge({ status }: { status: RequestStatus }) {

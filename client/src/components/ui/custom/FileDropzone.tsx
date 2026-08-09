@@ -23,6 +23,7 @@ const FileDropzone: React.FC<FileDropzoneProps> = ({
 	accept = "image/jpeg,image/png,image/webp,image/heic,application/pdf",
 	maxFiles = 10,
 }) => {
+	const maxFileSizeBytes = 20 * 1024 * 1024;
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [isDragging, setIsDragging] = useState(false);
 	const [limitMessage, setLimitMessage] = useState<string | null>(null);
@@ -30,11 +31,23 @@ const FileDropzone: React.FC<FileDropzoneProps> = ({
 	const handleFiles = (fileList: FileList | null) => {
 		if (!fileList) return;
 
-		const combined = [...files, ...Array.from(fileList)];
+		const incomingFiles = Array.from(fileList);
+		const oversizedFiles = incomingFiles.filter(
+			(file) => file.size > maxFileSizeBytes,
+		);
+		const combined = [
+			...files,
+			...incomingFiles.filter((file) => file.size <= maxFileSizeBytes),
+		];
 
 		if (combined.length > maxFiles) {
 			setLimitMessage(`Only ${maxFiles} files allowed per record — extra files were dropped.`);
 			onChange(combined.slice(0, maxFiles));
+		} else if (oversizedFiles.length > 0) {
+			setLimitMessage(
+				`${oversizedFiles.length === 1 ? "A file is" : "Some files are"} larger than 20MB and were not added.`,
+			);
+			onChange(combined);
 		} else {
 			setLimitMessage(null);
 			onChange(combined);

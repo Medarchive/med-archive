@@ -1,4 +1,4 @@
-export type RequestStatus = "PENDING" | "APPROVED" | "DECLINED";
+export type RequestStatus = "PENDING" | "APPROVED" | "DECLINED" | "REVOKED";
 
 // Confirmed against a real GET /health-records/access-requests response
 // (the patient's own inbox). This is a DIFFERENT shape from the admin

@@ -12,7 +12,9 @@ interface ProviderRequestTableProps {
 	onPageChange: (page: number) => void;
 	onRowClick: (request: AccessRequestData) => void;
 	onDecision: (id: string, approved: boolean) => void;
+	onRevoke: (id: string) => void;
 	isResponding: boolean;
+	isRevoking: boolean;
 }
 
 const getInitials = (name: string) =>
@@ -32,7 +34,9 @@ export default function ProviderRequestTable({
 	onPageChange,
 	onRowClick,
 	onDecision,
+	onRevoke,
 	isResponding,
+	isRevoking,
 }: ProviderRequestTableProps) {
 	return (
 		<div className="rounded-[12px] border border-[#F5F5F5] bg-white p-5">
@@ -116,7 +120,22 @@ export default function ProviderRequestTable({
 										// mechanism for it (confirmed: PATCH only accepts
 										// APPROVED/DECLINED, no REVOKED, no DELETE). Add it here
 										// once that exists.
+									<div
+										className="flex items-center gap-2"
+										onClick={(e) => e.stopPropagation()}
+									>
 										<StatusBadge status={request.status} />
+										{request.status === "APPROVED" && (
+											<Button
+												size="sm"
+												variant="destructive"
+												isLoading={isRevoking}
+												onClick={() => onRevoke(request.id)}
+											>
+												Revoke
+											</Button>
+										)}
+									</div>
 									)}
 								</td>
 							</tr>

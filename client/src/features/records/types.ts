@@ -20,7 +20,7 @@ export type AllergyType =
 // response schema is just the generic envelope with no data shape) — these
 // are our best-guess known values, but treat any other string as possible
 // too rather than assuming this is exhaustive.
-export type ProofStatus = "PENDING" | "VERIFIED" | "FAILED";
+export type ProofStatus = "PENDING" | "GENERATED" | "FAILED";
 
 // Matches a real GET /api/v1/health-records response exactly (confirmed
 // against a live sample, not just the OpenAPI spec — that endpoint's data
@@ -69,7 +69,11 @@ export interface HealthRecordData {
 export interface RecordProofData {
 	// Widened past the known ProofStatus union since the API doesn't
 	// document the actual set of values — render defensively.
-	proofStatus: ProofStatus | (string & {});
+	proofStatus?: ProofStatus | (string & {});
+	// The proof worker has used both names across API versions. Accept either
+	// field so a valid GENERATED status never renders as "Unknown".
+	status?: ProofStatus | (string & {});
+	zkProofStatus?: ProofStatus | (string & {});
 	proofHash?: string;
 	generatedAt?: string;
 }

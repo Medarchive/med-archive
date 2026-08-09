@@ -72,4 +72,13 @@ export interface ProviderRecordRequestData {
 	requestType: string;
 	note?: string | null;
 	createdAt: string;
+	updatedAt?: string;
+	// Revoked requests deliberately retain their audit row, while the backend
+	// returns `record: null` so the provider cannot read record data.
+	record: HealthRecordData | null;
+	patient?: {
+		id: string;
+		fullName?: string;
+		email?: string;
+	} | null;
 }
