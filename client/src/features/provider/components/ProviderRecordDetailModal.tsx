@@ -1,11 +1,9 @@
 "use client";
 
-import { toast } from "sonner";
-import { FileText, ShieldCheck } from "lucide-react";
+import { FileText } from "lucide-react";
 import Modal from "../../../components/ui/custom/Modal";
+import StatusBadge from "../../../components/shared/StatusBadge";
 import { HealthRecordData, recordTypeConfig } from "../../records/types";
-import { useRecordProof, useVerifyRecordProof } from "../../records/hooks";
-import ZkProofBadge from "../../records/components/ZkProofBadge";
 
 interface ProviderRecordDetailModalProps {
 	record: HealthRecordData | null;
@@ -33,21 +31,10 @@ export default function ProviderRecordDetailModal({
 	record,
 	onClose,
 }: ProviderRecordDetailModalProps) {
-	const { data: proof, isLoading: isProofLoading } = useRecordProof(record?.id ?? null);
-	const { mutate: verifyProof, isPending: isVerifying } = useVerifyRecordProof();
-
 	if (!record) return null;
 
 	const fields = record as unknown as Record<string, string>;
 	const primaryField = recordTypeConfig[record.recordType].primaryField;
-
-	const handleVerify = () => {
-		verifyProof(record.id, {
-			onError: (error) => {
-				toast.error(error.message || "Proof pending or failed");
-			},
-		});
-	};
 
 	return (
 		<Modal open={!!record} onClose={onClose}>
@@ -84,15 +71,10 @@ export default function ProviderRecordDetailModal({
 
 				<div className="flex items-center justify-between gap-4">
 					<p className="text-sm font-semibold">ZK Proof</p>
-					{isProofLoading ? (
-						<p className="text-sm text-[#9B9B9B]">Checking...</p>
-					) : proof ? (
-							<ZkProofBadge
-								status={proof.proofStatus ?? proof.zkProofStatus ?? proof.status}
-							/>
-					) : (
-						<p className="text-sm text-[#9B9B9B]">Not available</p>
-					)}
+					<StatusBadge
+						variant={record.zkVerified ? "success" : "warning"}
+						label={record.zkVerified ? "Verified" : "Not verified"}
+					/>
 				</div>
 
 				{record.files.length > 0 && (
@@ -125,19 +107,6 @@ export default function ProviderRecordDetailModal({
 					</div>
 				)}
 
-				{((proof?.proofStatus ?? proof?.zkProofStatus ?? proof?.status) === "PENDING" || !proof) && (
-					<div className="flex items-center justify-end gap-4 pt-2">
-						<button
-							type="button"
-							onClick={handleVerify}
-							disabled={isVerifying}
-							className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline disabled:opacity-60"
-						>
-							<ShieldCheck className="size-4" />
-							{isVerifying ? "Verifying..." : "ZK Verify"}
-						</button>
-					</div>
-				)}
 			</div>
 		</Modal>
 	);

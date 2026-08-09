@@ -49,6 +49,7 @@ export default function PatientLookupPage() {
 	const [identifierType, setIdentifierType] = useState<IdentifierType>("careId");
 	const [identifierValue, setIdentifierValue] = useState("");
 	const [lastSearch, setLastSearch] = useState<PatientLookupParams | null>(null);
+	const [approvedPatientId, setApprovedPatientId] = useState<string | null>(null);
 	const [selectedRecordId, setSelectedRecordId] = useState("");
 	const [trackedRequests, setTrackedRequests] = useState<TrackedRequest[]>([]);
 	const [showRequestAccess, setShowRequestAccess] = useState(false);
@@ -68,7 +69,7 @@ export default function PatientLookupPage() {
 		data: approvedRecords,
 		isLoading: isLoadingApproved,
 		refetch: refetchApprovedRecords,
-	} = useApprovedPatientRecords(result?.patient.id ?? null);
+	} = useApprovedPatientRecords(approvedPatientId);
 
 	const isVerified = !!profile?.verifiedAt;
 	const selectedRecord = result?.records.find((r) => r.id === selectedRecordId);
@@ -86,14 +87,23 @@ export default function PatientLookupPage() {
 
 		const params: PatientLookupParams = { [identifierType]: trimmed };
 		setLastSearch(params);
+		setApprovedPatientId(null);
 		setSelectedRecordId("");
 		setTrackedRequests([]);
-		lookupPatient(params);
+		lookupPatient(params, {
+			onSuccess: (patientResult) => {
+				// The approved-records endpoint returns full HealthRecordData[];
+				// setting this directly guarantees it is fetched for the patient
+				// just selected in this lookup.
+				setApprovedPatientId(patientResult.patient.id);
+			},
+		});
 	};
 
 	const handleNewSearch = () => {
 		setIdentifierValue("");
 		setLastSearch(null);
+		setApprovedPatientId(null);
 		setSelectedRecordId("");
 		setTrackedRequests([]);
 		reset();
@@ -269,7 +279,16 @@ export default function PatientLookupPage() {
 								{approvedRecords.map((record) => (
 									<div
 										key={record.id}
-										className="flex flex-wrap items-center justify-between gap-2 rounded-[8px] border border-[#F5F5F5] px-3 py-2"
+										role="button"
+										tabIndex={0}
+										onClick={() => handleViewRecord(record.id)}
+										onKeyDown={(event) => {
+											if (event.key === "Enter" || event.key === " ") {
+												event.preventDefault();
+												handleViewRecord(record.id);
+											}
+										}}
+										className="flex cursor-pointer flex-wrap items-center justify-between gap-2 rounded-[8px] border border-[#F5F5F5] px-3 py-2 duration-150 hover:bg-[#FAFAFA]"
 									>
 										<div className="flex items-center gap-2">
 											<span className="text-sm font-medium">
@@ -284,7 +303,10 @@ export default function PatientLookupPage() {
 											size="sm"
 											variant="ghost"
 											isLoading={isFetchingRecord}
-											onClick={() => handleViewRecord(record.id)}
+											onClick={(event) => {
+												event.stopPropagation();
+												handleViewRecord(record.id);
+											}}
 										>
 											<Eye className="size-3.5" />
 											View Record

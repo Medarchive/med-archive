@@ -4,8 +4,15 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import Pagination from "../../../components/shared/Pagination";
 import StatusBadge from "../../provider-request/components/StatusBadge";
+import { HealthRecordData } from "../../records/types";
 import { RequestStatus } from "../../provider-request/types";
-import { useProviderRecordRequests } from "../hooks";
+import {
+	useApprovedPatientRecord,
+	useProviderRecordRequests,
+} from "../hooks";
+import { ProviderRecordRequestData } from "../types";
+import ProviderRecordDetailModal from "./ProviderRecordDetailModal";
+import ProviderRecordRequestDetailModal from "./ProviderRecordRequestDetailModal";
 
 type Filter = "all" | RequestStatus;
 
@@ -18,6 +25,11 @@ export default function ProviderRecordRequestsPage() {
 	const [status, setStatus] = useState<Filter>("all");
 	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 	const [page, setPage] = useState(1);
+	const [selectedRequest, setSelectedRequest] =
+		useState<ProviderRecordRequestData | null>(null);
+	const [previewRecord, setPreviewRecord] = useState<HealthRecordData | null>(null);
+	const { mutate: fetchApprovedRecord, isPending: isLoadingRecord } =
+		useApprovedPatientRecord();
 
 	const { data, isLoading } = useProviderRecordRequests({
 		status: status === "all" ? undefined : status,
@@ -31,6 +43,20 @@ export default function ProviderRecordRequestsPage() {
 	const updateStatus = (value: Filter) => {
 		setStatus(value);
 		setPage(1);
+	};
+
+	const handlePreviewRecord = (request: ProviderRecordRequestData) => {
+		if (!request.recordId) return;
+
+		fetchApprovedRecord(
+			{ patientId: request.patientId, recordId: request.recordId },
+			{
+				onSuccess: (record) => {
+					setSelectedRequest(null);
+					setPreviewRecord(record);
+				},
+			},
+		);
 	};
 
 	return (
@@ -99,7 +125,11 @@ export default function ProviderRecordRequestsPage() {
 							</thead>
 							<tbody className="divide-y divide-[#F5F5F5]">
 								{requests.map((request) => (
-									<tr key={request.id}>
+									<tr
+										key={request.id}
+										onClick={() => setSelectedRequest(request)}
+										className="cursor-pointer duration-150 hover:bg-[#FAFAFA]"
+									>
 										<td className="py-3 text-[#9B9B9B]">
 											{request.patient?.fullName ?? request.patient?.email ?? "Patient"}
 										</td>
@@ -126,6 +156,18 @@ export default function ProviderRecordRequestsPage() {
 					</div>
 				)}
 			</div>
+
+			<ProviderRecordRequestDetailModal
+				request={selectedRequest}
+				onClose={() => setSelectedRequest(null)}
+				onPreviewRecord={handlePreviewRecord}
+				isLoadingRecord={isLoadingRecord}
+			/>
+
+			<ProviderRecordDetailModal
+				record={previewRecord}
+				onClose={() => setPreviewRecord(null)}
+			/>
 		</div>
 	);
 }

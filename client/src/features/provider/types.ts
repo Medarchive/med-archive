@@ -68,17 +68,24 @@ export interface RequestRecordAccessPayload {
 // AccessRequestData this presumably becomes once the patient sees it.
 export interface ProviderRecordRequestData {
 	id: string;
+	patientId: string;
+	providerId: string;
+	recordId: string | null;
 	status: RequestStatus;
 	requestType: string;
 	note?: string | null;
 	createdAt: string;
-	updatedAt?: string;
+	updatedAt: string;
 	// Revoked requests deliberately retain their audit row, while the backend
 	// returns `record: null` so the provider cannot read record data.
-	record: HealthRecordData | null;
-	patient?: {
+	record: {
 		id: string;
-		fullName?: string;
-		email?: string;
+		title: string;
+		createdAt: string;
 	} | null;
+	patient: {
+		id: string;
+		fullName: string;
+		email: string;
+	};
 }
