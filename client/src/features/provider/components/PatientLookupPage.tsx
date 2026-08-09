@@ -27,10 +27,13 @@ const identifierOptions = [
 	{ label: "Email", value: "email" },
 ];
 
-// Session-only — there's no plural GET for a provider's own record
-// requests, so nothing here can be recovered after a page reload. "Check
-// Status" against GET .../record-requests/{id} is the only way to learn
-// whether one's since been approved.
+// Session-only by design, not by necessity anymore — a persisted plural
+// list now exists (GET /provider/profile/record-requests, see the
+// dedicated Record Requests page), but re-fetching and diffing the whole
+// list just to reflect one just-submitted request here would be overkill
+// for this inline "Check Status" flow. "Check Status" against GET
+// .../record-requests/{id} stays the quick, request-scoped way to learn
+// whether one's since been approved without leaving this page.
 interface TrackedRequest {
 	requestId: string;
 	recordId: string;

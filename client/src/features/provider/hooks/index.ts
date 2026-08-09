@@ -161,8 +161,10 @@ export const useProviderRecordRequests = (
 // On-demand "check status" for a single tracked request — same
 // wrap-a-GET-as-a-mutation pattern as useLookupPatient, since it's
 // triggered by a button click for a specific id rather than tied to
-// mount. There's no plural GET for a provider's own requests (confirmed),
-// so this is the only way to learn whether one's since been approved.
+// mount. useProviderRecordRequests (below) is the persisted plural list now
+// that it exists, but this stays for the inline "Check Status" action in
+// PatientLookupPage's session-tracked requests, which doesn't want a full
+// list refetch just to learn one request's status.
 export const useRecordRequestStatus = () => {
 	const axiosAuth = useAxiosAuth();
 

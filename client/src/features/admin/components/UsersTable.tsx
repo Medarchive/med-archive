@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Pagination from "../../../components/shared/Pagination";
 import TableSkeleton from "../../../components/shared/skeletons/TableSkeleton";
+import StatusBadge from "../../../components/shared/StatusBadge";
 import ConfirmModal from "../../../components/ui/custom/ConfirmModal";
 import { Button } from "../../../components/ui/button";
 import { useHeaderStore } from "../../../lib/stores/header-store";
@@ -130,12 +131,14 @@ export default function UsersTable() {
 							)}
 
 							{users.map((user) => {
-								// The list endpoint doesn't expose provider verification
-								// status at all (no profile/verifiedAt field on this
-								// response) — show Verify for every provider row rather
-								// than guess; the backend just returns "already verified"
-								// gracefully (handled below) if it's clicked on one that is.
-								const needsVerification = user.role === "PROVIDER";
+								// providerStatus is only meaningful for PROVIDER rows
+								// (null for patients/admins) — confirmed added to this
+								// endpoint directly by the user. Replaces the earlier
+								// blanket "show Verify for every provider row" fallback
+								// that existed only because this field wasn't on the
+								// response yet.
+								const needsVerification =
+									user.role === "PROVIDER" && user.providerStatus === "PENDING";
 
 								return (
 									<tr
@@ -150,7 +153,23 @@ export default function UsersTable() {
 											{user.email}
 										</td>
 										<td className="whitespace-nowrap py-3 pr-4 text-[#9B9B9B]">
-											{user.role}
+											<div className="flex items-center gap-2">
+												{user.role}
+												{user.role === "PROVIDER" && user.providerStatus && (
+													<StatusBadge
+														variant={
+															user.providerStatus === "VERIFIED"
+																? "success"
+																: "warning"
+														}
+														label={
+															user.providerStatus === "VERIFIED"
+																? "Verified"
+																: "Pending"
+														}
+													/>
+												)}
+											</div>
 										</td>
 										<td className="whitespace-nowrap py-3 pr-4 text-[#9B9B9B]">
 											{user.gender ?? "—"}

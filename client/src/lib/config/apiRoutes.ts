@@ -43,7 +43,10 @@ export const apiRoutes = {
 
 	personalInfo: "/api/v1/personal-info",
 	medHistory: "/api/v1/med-history",
-	medicalConditions: "/api/v1/medical-conditions",
+	medicalConditions: {
+		BASE: "/api/v1/medical-conditions",
+		BY_ID: (id: string) => `/api/v1/medical-conditions/${id}`,
+	},
 	medicalProfile: "/api/v1/medical-profile",
 	dashboard: "/api/v1/dashboard",
 

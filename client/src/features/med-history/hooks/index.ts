@@ -23,7 +23,7 @@ export const useMedicalConditions = (params: PaginationParams = {}) => {
 		queryFn: async () => {
 			const { data } = await axiosAuth.get<
 				ApiSuccessResponse<PaginatedData<ConditionData>>
-			>(apiRoutes.medicalConditions, { params });
+			>(apiRoutes.medicalConditions.BASE, { params });
 
 			return data.data;
 		},

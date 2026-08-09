@@ -13,7 +13,10 @@ import {
 } from "../../../types/api";
 import { RequestStatus } from "../../provider-request/types";
 import { MEDICAL_CONDITIONS_QUERY_KEY } from "../../med-history/hooks";
-import { CreateConditionPayload } from "../../med-history/types";
+import {
+	CreateConditionPayload,
+	UpdateConditionPayload,
+} from "../../med-history/types";
 import {
 	AdminAccessRequestData,
 	AdminStatsData,
@@ -292,8 +295,7 @@ export const useAdminActivityLogs = (params: AdminActivityLogsParams = {}) => {
 // were pulled to get the actual enum): "DISEASE" | "ALLERGY" | "CONDITION".
 // `sortOrder` is optional, defaults to 0 server-side. GET on this same path
 // is real (see features/med-history/hooks' useMedicalConditions), so this at
-// least has a real list to invalidate into — PUT/DELETE (edit/deactivate)
-// are still documented stubs.
+// least has a real list to invalidate into.
 export const useCreateMedicalCondition = () => {
 	const axiosAuth = useAxiosAuth();
 	const queryClient = useQueryClient();
@@ -301,7 +303,7 @@ export const useCreateMedicalCondition = () => {
 	return useMutation({
 		mutationFn: async (payload: CreateConditionPayload) => {
 			const { data } = await axiosAuth.post<ApiSuccessResponse<unknown>>(
-				apiRoutes.medicalConditions,
+				apiRoutes.medicalConditions.BASE,
 				payload,
 			);
 
@@ -313,6 +315,64 @@ export const useCreateMedicalCondition = () => {
 		},
 		onError: (error) => {
 			toast.error(getApiErrorMessage(error));
+		},
+	});
+};
+
+// PUT /api/v1/medical-conditions/{id} ("[Admin] Update a medical
+// condition") — confirmed live via the docs (UpdateMedicalConditionDto: all
+// fields optional). 409 if the new name collides with another condition.
+export const useUpdateMedicalCondition = () => {
+	const axiosAuth = useAxiosAuth();
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: async ({
+			id,
+			payload,
+		}: {
+			id: string;
+			payload: UpdateConditionPayload;
+		}) => {
+			const { data } = await axiosAuth.put<ApiSuccessResponse<unknown>>(
+				apiRoutes.medicalConditions.BY_ID(id),
+				payload,
+			);
+
+			return data;
+		},
+		onSuccess: (data) => {
+			queryClient.invalidateQueries({ queryKey: MEDICAL_CONDITIONS_QUERY_KEY });
+			toast.success(data.message || "Condition updated");
+		},
+		onError: (error) => {
+			toast.error(getApiErrorMessage(error, "A condition with that name already exists"));
+		},
+	});
+};
+
+// DELETE /api/v1/medical-conditions/{id} ("[Admin] Soft-delete a medical
+// condition") — confirmed live via the docs. GET only ever lists active
+// conditions, so this removes the row from view rather than showing an
+// "inactive" state anywhere; 400 if it's already deactivated.
+export const useDeactivateMedicalCondition = () => {
+	const axiosAuth = useAxiosAuth();
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: async (id: string) => {
+			const { data } = await axiosAuth.delete<ApiSuccessResponse<unknown>>(
+				apiRoutes.medicalConditions.BY_ID(id),
+			);
+
+			return data;
+		},
+		onSuccess: (data) => {
+			queryClient.invalidateQueries({ queryKey: MEDICAL_CONDITIONS_QUERY_KEY });
+			toast.success(data.message || "Condition deactivated");
+		},
+		onError: (error) => {
+			toast.error(getApiErrorMessage(error, "This condition is already deactivated"));
 		},
 	});
 };

@@ -21,6 +21,12 @@ export interface AdminStatsData {
 
 export type Gender = "MALE" | "FEMALE";
 
+// Only meaningful for PROVIDER rows — null for patients/admins. Added to
+// GET /users (admin list) after this type was first modeled; confirmed by
+// the user directly (not yet seen in a pasted raw response), so trusted the
+// same way a real response would be.
+export type AdminProviderStatus = "VERIFIED" | "PENDING" | null;
+
 // Confirmed against a real GET /users (admin list) response — deliberately
 // separate from types/api.ts's UserProfileData (used for /users/me): this
 // endpoint's rows carry no walletAddress or nested profile at all, but do
@@ -35,6 +41,7 @@ export interface AdminUserSummary {
 	phone: string | null;
 	role: UserRole;
 	gender: Gender | null;
+	providerStatus: AdminProviderStatus;
 	emailVerifiedAt: string | null;
 	createdAt: string;
 	updatedAt: string;

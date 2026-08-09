@@ -36,6 +36,10 @@ export default function UserDetailModal({ user, onClose }: UserDetailModalProps)
 		{ label: "Phone", value: user.phone ?? "—" },
 		{ label: "Role", value: user.role },
 		{ label: "Gender", value: user.gender ?? "—" },
+		// Only meaningful for providers — null for patients/admins.
+		...(user.role === "PROVIDER"
+			? [{ label: "Provider Status", value: user.providerStatus ?? "—" }]
+			: []),
 		{ label: "Email Verified", value: formatDate(user.emailVerifiedAt) },
 		{ label: "Joined", value: formatDate(user.createdAt) },
 	];

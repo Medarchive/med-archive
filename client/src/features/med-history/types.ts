@@ -34,3 +34,17 @@ export interface CreateConditionPayload {
 	category: ConditionCategory;
 	sortOrder?: number;
 }
+
+// PUT /api/v1/medical-conditions/{id} ("[Admin] Update a medical condition")
+// — confirmed via the live UpdateMedicalConditionDto schema. All fields
+// optional; `isActive` exists on the DTO but isn't surfaced as an editable
+// field in this app's edit form — GET only ever returns active conditions
+// ("List all active medical conditions", no isActive/status filter param),
+// so a deactivated condition becomes unselectable here the moment it's
+// deactivated, making a reactivate-via-edit flow unreachable in this UI.
+// Deactivating stays a dedicated action (DELETE, soft-delete) instead.
+export interface UpdateConditionPayload {
+	name?: string;
+	category?: ConditionCategory;
+	sortOrder?: number;
+}
