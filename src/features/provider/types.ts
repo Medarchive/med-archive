@@ -1,5 +1,6 @@
 import { HealthRecordData } from "../records/types";
 import { RequestStatus } from "../provider-request/types";
+import { ClinicalProofType } from "../clinical-proofs/types";
 
 // Confirmed against a real GET /provider/profile response.
 export type ProviderType =
@@ -58,19 +59,23 @@ export interface RequestRecordAccessPayload {
 	patientId?: string;
 	careId?: string;
 	email?: string;
+	// At most one of recordId / proofType — omit both for a general request
+	// described by requestType alone. The backend 400s if both are set.
 	recordId?: string;
+	proofType?: ClinicalProofType;
 	requestType: string;
 	note?: string;
 }
 
-// Response schema for POST /provider/profile/record-requests isn't detailed
-// either — best guess, matching the shape of the patient-facing
-// AccessRequestData this presumably becomes once the patient sees it.
+// POST /provider/profile/record-requests' example confirms the flat fields
+// (including proofType); `record`/`patient` come from the list endpoint,
+// which the spec gives no schema for.
 export interface ProviderRecordRequestData {
 	id: string;
 	patientId: string;
 	providerId: string;
 	recordId: string | null;
+	proofType?: ClinicalProofType | null;
 	status: RequestStatus;
 	requestType: string;
 	note?: string | null;

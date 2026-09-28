@@ -1,7 +1,11 @@
+import Link from "next/link";
 import Modal from "../../../components/ui/custom/Modal";
 import { Button } from "../../../components/ui/button";
 import { AccessRequestData } from "../types";
 import StatusBadge from "./StatusBadge";
+import { describeRequestedItem } from "../utils";
+import { pageRoutes } from "../../../lib/config/routes";
+import { getClinicalProofTypeLabel } from "../../clinical-proofs/constants";
 
 interface ProviderRequestDetailModalProps {
 	request: AccessRequestData | null;
@@ -74,6 +78,31 @@ export default function ProviderRequestDetailModal({
 						<p className="text-sm font-semibold">Request</p>
 						<p className="text-sm text-[#9B9B9B]">{request.requestType}</p>
 					</div>
+
+					<div className="flex items-center justify-between gap-4">
+						<p className="text-sm font-semibold">Requested Item</p>
+						<p className="text-right text-sm text-[#9B9B9B]">
+							{describeRequestedItem(request) ?? "Any matching records"}
+						</p>
+					</div>
+
+					{/* The provider verifies a proof the patient generates themselves —
+					    approving alone doesn't create one. */}
+					{request.proofType &&
+						(request.status === "PENDING" || request.status === "APPROVED") && (
+							<p className="rounded-[8px] border border-[#F5F5F5] bg-[#FAFAFA] px-3 py-2 text-sm text-[#9B9B9B]">
+								This provider is asking for a{" "}
+								{getClinicalProofTypeLabel(request.proofType).toLowerCase()} proof.
+								Once you approve, generate one on{" "}
+								<Link
+									href={pageRoutes.dashboardRoutes.CLINICAL_PROOFS}
+									className="font-semibold text-primary underline"
+								>
+									Clinical Proofs
+								</Link>{" "}
+								if you haven&apos;t already — they&apos;ll only see that one fact.
+							</p>
+						)}
 
 					{request.note && (
 						<div className="flex items-start justify-between gap-4">

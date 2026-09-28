@@ -25,6 +25,8 @@ export default function DashboardOverviewSkeleton() {
 					<Skeleton className="h-36 rounded-[12px]" />
 					<Skeleton className="h-36 rounded-[12px]" />
 				</div>
+
+				<Skeleton className="h-56 rounded-[12px] md:col-span-2 lg:col-span-4" />
 			</div>
 		</div>
 	);

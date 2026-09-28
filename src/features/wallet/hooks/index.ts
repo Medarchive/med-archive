@@ -7,11 +7,11 @@ import { useAxiosAuth } from "../../../hooks/useAxiosAuth";
 import { apiRoutes } from "../../../lib/config/apiRoutes";
 import { getApiErrorMessage } from "../../../lib/utils";
 import {
-	assertAllowedFreighterNetwork,
-	buildFreighterUnavailableError,
-	FreighterUnavailableError,
-	toHexSignature,
-} from "../../../lib/utils/freighter";
+	assertCorrectNetwork,
+	connectWallet,
+	getWalletErrorMessage,
+	signNonce,
+} from "../../../lib/wallet/kit";
 import {
 	ApiSuccessResponse,
 	PaginatedData,
@@ -44,48 +44,27 @@ export const useWallet = () => {
 	});
 };
 
-// Full connect flow: get the address from Freighter, link it (which returns
-// a nonce), sign that nonce, then verify — same nonce-signature pattern as
-// wallet sign-in, just scoped to linking a wallet to an existing account.
-// `label` is the optional display name from POST /wallet's documented body
-// (e.g. "My main wallet") — purely cosmetic on the backend, so an empty
-// string is just omitted rather than sent.
+// Full connect flow: pick a wallet in the kit's modal, link its address
+// (which returns a nonce), sign that nonce, then verify — same
+// nonce-signature pattern as wallet sign-in, just scoped to linking a wallet
+// to an existing account. `label` is the optional display name from POST
+// /wallet's documented body (e.g. "My main wallet") — purely cosmetic on the
+// backend, so an empty string is just omitted rather than sent.
 export const useConnectWallet = () => {
 	const axiosAuth = useAxiosAuth();
 	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: async (label?: string) => {
-			const freighter = await import("@stellar/freighter-api");
+			const address = await connectWallet();
 
-			const connection = await freighter.isConnected();
-			if (connection.error || !connection.isConnected) {
-				throw buildFreighterUnavailableError();
-			}
-
-			const access = await freighter.requestAccess();
-			if (access.error || !access.address) {
-				throw new Error(access.error?.message ?? "Wallet access was denied");
-			}
-
-			const address = access.address;
-
-			const { network: freighterNetwork, error: networkError } =
-				await freighter.getNetwork();
-			if (networkError) {
-				throw new Error(
-					"Couldn't determine which Stellar network Freighter is on",
-				);
-			}
-
-			// Testnet-only for now (env-controlled) — reject rather than silently
-			// relabel, so a mainnet wallet never gets linked as if it were
-			// testnet or vice versa. This check stays client-side only: the
-			// live API 400s with "property network should not exist" if it's
-			// included in the request body at all, despite the docs' example
-			// showing it — the backend apparently derives/ignores network
-			// itself rather than accepting it as input.
-			assertAllowedFreighterNetwork(freighterNetwork);
+			// Testnet-only for now (env-controlled) — reject rather than
+			// silently relabel, so a mainnet wallet never gets linked as if it
+			// were testnet or vice versa. This check stays client-side only:
+			// the live API 400s with "property network should not exist" if
+			// it's included in the request body at all, despite the docs'
+			// example showing it.
+			await assertCorrectNetwork();
 
 			const linkPayload = { address, label: label || undefined };
 
@@ -98,7 +77,7 @@ export const useConnectWallet = () => {
 				nonce = linkRes.data.nonce;
 			} catch (error) {
 				// "Wallet already linked" — most likely a previous attempt linked
-				// but never got signed/verified (closed the Freighter prompt,
+				// but never got signed/verified (closed the wallet prompt,
 				// dropped connection, etc.), leaving a stuck linked-but-unverified
 				// wallet with no way to fetch its original nonce again (there's no
 				// regenerate-nonce endpoint). Self-heal by unlinking and relinking
@@ -116,16 +95,7 @@ export const useConnectWallet = () => {
 				}
 			}
 
-			const signed = await freighter.signMessage(nonce, {
-				address,
-			});
-			if (signed.error || !signed.signedMessage) {
-				throw new Error(
-					signed.error?.message ?? "Failed to sign the wallet nonce",
-				);
-			}
-
-			const signature = toHexSignature(signed.signedMessage);
+			const signature = await signNonce(nonce, address);
 
 			const { data } = await axiosAuth.post<ApiSuccessResponse<WalletData>>(
 				apiRoutes.wallet.VERIFY,
@@ -139,19 +109,36 @@ export const useConnectWallet = () => {
 			toast.success(data.message || "Wallet connected successfully");
 		},
 		onError: (error) => {
-			if (error instanceof FreighterUnavailableError) {
-				toast.error(error.message, {
-					action: {
-						label: error.installLabel,
-						onClick: () =>
-							window.open(error.installUrl, "_blank", "noopener,noreferrer"),
-					},
-				});
-				return;
-			}
+			toast.error(getWalletErrorMessage(error));
+		},
+	});
+};
 
+// For people without a Stellar wallet of their own: the server generates
+// and funds one (testnet) and marks it verified straight away — it holds the
+// key, so there's no ownership signature to collect. 409 means a wallet is
+// already linked.
+export const useCreateCustodialWallet = () => {
+	const axiosAuth = useAxiosAuth();
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: async () => {
+			const { data } = await axiosAuth.post<ApiSuccessResponse<WalletData>>(
+				apiRoutes.wallet.CREATE,
+			);
+
+			return data;
+		},
+		onSuccess: (data) => {
+			queryClient.invalidateQueries({ queryKey: WALLET_QUERY_KEY });
+			toast.success(data.message || "Wallet created");
+		},
+		onError: (error) => {
 			toast.error(
-				error instanceof Error ? error.message : getApiErrorMessage(error),
+				isAxiosError(error) && error.response?.status === 409
+					? "A wallet is already linked to this account."
+					: getApiErrorMessage(error, "Couldn't create a wallet — try again"),
 			);
 		},
 	});

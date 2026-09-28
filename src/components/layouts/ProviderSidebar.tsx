@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { X, LogOut, LayoutGrid, Search, History, User, ClipboardList } from "lucide-react";
+import { X, LogOut, LayoutGrid, Search, History, User, ClipboardList, Wallet } from "lucide-react";
 import Logo from "../ui/custom/Logo";
 import ConfirmModal from "../ui/custom/ConfirmModal";
 import { useHeaderStore } from "@/lib/stores/header-store";
@@ -15,6 +15,7 @@ const navItems = [
 	{ label: "Patient Lookup", href: pageRoutes.providerRoutes.PATIENTS, icon: Search },
 	{ label: "Record Requests", href: pageRoutes.providerRoutes.RECORD_REQUESTS, icon: ClipboardList },
 	{ label: "Activity", href: pageRoutes.providerRoutes.ACTIVITY, icon: History },
+	{ label: "Wallet", href: pageRoutes.providerRoutes.WALLET, icon: Wallet },
 	{ label: "Profile", href: pageRoutes.providerRoutes.PROFILE, icon: User },
 ];
 

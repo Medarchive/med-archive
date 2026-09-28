@@ -19,6 +19,7 @@ export const apiRoutes = {
 
 	wallet: {
 		BASE: "/api/v1/wallet",
+		CREATE: "/api/v1/wallet/create",
 		VERIFY: "/api/v1/wallet/verify",
 		TRANSACTIONS: "/api/v1/wallet/transactions",
 	},
@@ -77,6 +78,7 @@ export const apiRoutes = {
 		BASE: "/api/v1/provider/profile",
 		PICTURE: "/api/v1/provider/profile/picture",
 		PATIENT_RECORDS: "/api/v1/provider/profile/patients/records",
+		PATIENT_SEARCH: "/api/v1/provider/profile/patients/search",
 		RECORD_REQUESTS: "/api/v1/provider/profile/record-requests",
 		RECORD_REQUEST_BY_ID: (id: string) =>
 			`/api/v1/provider/profile/record-requests/${id}`,
@@ -85,6 +87,21 @@ export const apiRoutes = {
 		PATIENT_APPROVED_RECORD_BY_ID: (patientId: string, recordId: string) =>
 			`/api/v1/provider/profile/patients/${patientId}/records/${recordId}`,
 		ACTIVITY: "/api/v1/provider/profile/activity",
+		VERIFY_CLINICAL_PROOF: (proofId: string) =>
+			`/api/v1/provider/profile/clinical-proofs/${proofId}/verify`,
+	},
+
+	clinicalProofs: {
+		BASE: "/api/v1/clinical-proofs",
+		TYPES: "/api/v1/clinical-proofs/types",
+		BY_ID: (id: string) => `/api/v1/clinical-proofs/${id}`,
+	},
+
+	serviceOrders: {
+		BASE: "/api/v1/service-orders",
+		BY_ID: (id: string) => `/api/v1/service-orders/${id}`,
+		PAYMENT_INTENT: (id: string) => `/api/v1/service-orders/${id}/payment-intent`,
+		VERIFY_PAYMENT: (id: string) => `/api/v1/service-orders/${id}/payment/verify`,
 	},
 
 	notifications: {

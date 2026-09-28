@@ -16,6 +16,7 @@ import HealthOverviewCard from "./HealthOverviewCard";
 import RecentActivitiesCard from "./RecentActivitiesCard";
 import AccessRequestsCard from "./AccessRequestsCard";
 import EmergencyContactCard from "./EmergencyContactCard";
+import RecentClinicalProofsCard from "./RecentClinicalProofsCard";
 import DashboardOverviewSkeleton from "../../../components/shared/skeletons/DashboardOverviewSkeleton";
 import { useHasMounted } from "../../../hooks/useHasMounted";
 
@@ -105,6 +106,10 @@ export default function DashboardOverview() {
 							contactNumber="—"
 						/>
 					)}
+				</div>
+
+				<div className="md:col-span-2 xl:col-span-4">
+					<RecentClinicalProofsCard />
 				</div>
 			</div>
 		</div>
