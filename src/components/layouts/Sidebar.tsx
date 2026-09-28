@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { X, LogOut } from "lucide-react";
-import { LayoutGrid, IdCard, Folder, Share2, ShieldCheck, Wallet } from "lucide-react";
+import { LayoutGrid, IdCard, Folder, Share2, ShieldCheck, ReceiptText, Wallet } from "lucide-react";
 import Logo from "../ui/custom/Logo";
 import ConfirmModal from "../ui/custom/ConfirmModal";
 import { useHeaderStore } from "@/lib/stores/header-store";
@@ -35,6 +35,7 @@ const navItems = [
 	// 	href: pageRoutes.dashboardRoutes.MEDICAL_TIMELINE,
 	// 	icon: History,
 	// },
+	{ label: "Orders", href: pageRoutes.dashboardRoutes.ORDERS, icon: ReceiptText },
 	{ label: "Wallet", href: pageRoutes.dashboardRoutes.WALLET, icon: Wallet },
 ];
 

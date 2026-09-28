@@ -16,10 +16,22 @@ import {
 	useApprovedPatientRecords,
 	PatientLookupParams,
 } from "../hooks";
+import { ClinicalProofType } from "../../clinical-proofs/types";
+import {
+	CLINICAL_PROOF_TYPE_LABELS,
+	getClinicalProofTypeLabel,
+} from "../../clinical-proofs/constants";
 import ProviderRecordDetailModal from "./ProviderRecordDetailModal";
-import RequestAccessModal from "./RequestAccessModal";
+import RequestAccessModal, { RequestTarget } from "./RequestAccessModal";
+import CreateServiceOrderModal from "../../service-orders/components/CreateServiceOrderModal";
 
 type IdentifierType = "careId" | "userId" | "email";
+
+// From the known list rather than GET /clinical-proofs/types, which is
+// documented as PATIENT-only.
+const proofTypeOptions = (
+	Object.keys(CLINICAL_PROOF_TYPE_LABELS) as ClinicalProofType[]
+).map((value) => ({ label: getClinicalProofTypeLabel(value), value }));
 
 const identifierOptions = [
 	{ label: "Care ID", value: "careId" },
@@ -36,7 +48,7 @@ const identifierOptions = [
 // whether one's since been approved without leaving this page.
 interface TrackedRequest {
 	requestId: string;
-	recordId: string;
+	kind: RequestTarget["kind"];
 	title: string;
 	status: RequestStatus;
 }
@@ -51,11 +63,12 @@ const statusStyles: Record<RequestStatus, string> = {
 export default function PatientLookupPage() {
 	const [identifierType, setIdentifierType] = useState<IdentifierType>("careId");
 	const [identifierValue, setIdentifierValue] = useState("");
-	const [lastSearch, setLastSearch] = useState<PatientLookupParams | null>(null);
 	const [approvedPatientId, setApprovedPatientId] = useState<string | null>(null);
 	const [selectedRecordId, setSelectedRecordId] = useState("");
 	const [trackedRequests, setTrackedRequests] = useState<TrackedRequest[]>([]);
-	const [showRequestAccess, setShowRequestAccess] = useState(false);
+	const [selectedProofType, setSelectedProofType] = useState<ClinicalProofType | "">("");
+	const [requestTarget, setRequestTarget] = useState<RequestTarget | null>(null);
+	const [showCreateOrder, setShowCreateOrder] = useState(false);
 	const [viewingRecord, setViewingRecord] = useState<HealthRecordData | null>(null);
 
 	const { data: profile } = useProviderProfile();
@@ -89,9 +102,9 @@ export default function PatientLookupPage() {
 		if (!trimmed) return;
 
 		const params: PatientLookupParams = { [identifierType]: trimmed };
-		setLastSearch(params);
 		setApprovedPatientId(null);
 		setSelectedRecordId("");
+		setSelectedProofType("");
 		setTrackedRequests([]);
 		lookupPatient(params, {
 			onSuccess: (patientResult) => {
@@ -105,22 +118,25 @@ export default function PatientLookupPage() {
 
 	const handleNewSearch = () => {
 		setIdentifierValue("");
-		setLastSearch(null);
 		setApprovedPatientId(null);
 		setSelectedRecordId("");
+		setSelectedProofType("");
 		setTrackedRequests([]);
 		reset();
 	};
 
 	const handleRequested = (requestId: string) => {
-		if (!selectedRecord) return;
+		if (!requestTarget) return;
 
 		setTrackedRequests((prev) => [
 			...prev,
 			{
 				requestId,
-				recordId: selectedRecord.id,
-				title: selectedRecord.title,
+				kind: requestTarget.kind,
+				title:
+					requestTarget.kind === "record"
+						? requestTarget.title
+						: `${getClinicalProofTypeLabel(requestTarget.proofType)} proof`,
 				status: "PENDING",
 			},
 		]);
@@ -213,9 +229,18 @@ export default function PatientLookupPage() {
 							<p className="text-sm text-[#9B9B9B]">{result.patient.email}</p>
 						</div>
 
-						<Button variant="ghost" onClick={handleNewSearch}>
-							New Search
-						</Button>
+						<div className="flex flex-wrap gap-2">
+							<Button
+								variant="outline"
+								disabled={!isVerified}
+								onClick={() => setShowCreateOrder(true)}
+							>
+								New Order
+							</Button>
+							<Button variant="ghost" onClick={handleNewSearch}>
+								New Search
+							</Button>
+						</div>
 					</div>
 
 					{!isVerified && (
@@ -256,13 +281,53 @@ export default function PatientLookupPage() {
 								</div>
 
 								<Button
-									disabled={!isVerified || !selectedRecordId}
-									onClick={() => setShowRequestAccess(true)}
+									disabled={!isVerified || !selectedRecord}
+									onClick={() =>
+										selectedRecord &&
+										setRequestTarget({
+											kind: "record",
+											recordId: selectedRecord.id,
+											title: selectedRecord.title,
+										})
+									}
 								>
 									Request Access
 								</Button>
 							</div>
 						)}
+					</div>
+
+					<div className="rounded-[12px] border border-[#F5F5F5] bg-white p-5">
+						<p className="font-semibold">Request a Clinical Proof</p>
+						<p className="mb-3 text-sm text-[#9B9B9B]">
+							Ask the patient to prove one specific fact — like their blood
+							group — without sharing the records behind it.
+						</p>
+
+						<div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+							<div className="flex-1">
+								<SelectField
+									name="selectedProofType"
+									label="Proof type"
+									placeholder="Select a proof type"
+									value={selectedProofType}
+									onChange={(e) =>
+										setSelectedProofType(e.target.value as ClinicalProofType)
+									}
+									options={proofTypeOptions}
+								/>
+							</div>
+
+							<Button
+								disabled={!isVerified || !selectedProofType}
+								onClick={() =>
+									selectedProofType &&
+									setRequestTarget({ kind: "proof", proofType: selectedProofType })
+								}
+							>
+								Request Proof
+							</Button>
+						</div>
 					</div>
 
 					<div className="rounded-[12px] border border-[#F5F5F5] bg-white p-5">
@@ -346,7 +411,9 @@ export default function PatientLookupPage() {
 										<div className="flex items-center gap-2">
 											{tracked.status === "APPROVED" ? (
 												<span className="text-xs text-[#9B9B9B]">
-													See Approved Records above
+													{tracked.kind === "record"
+														? "See Approved Records above"
+														: "Approved — the patient can now generate this proof"}
 												</span>
 											) : (
 												<Button
@@ -375,13 +442,21 @@ export default function PatientLookupPage() {
 				onClose={() => setViewingRecord(null)}
 			/>
 
-			{lastSearch && selectedRecord && (
+			{result && (
+				<CreateServiceOrderModal
+					open={showCreateOrder}
+					onClose={() => setShowCreateOrder(false)}
+					patientId={result.patient.id}
+					patientName={result.patient.fullName}
+				/>
+			)}
+
+			{result && requestTarget && (
 				<RequestAccessModal
-					open={showRequestAccess}
-					onClose={() => setShowRequestAccess(false)}
-					patientIdentifier={lastSearch}
-					recordId={selectedRecord.id}
-					recordTitle={selectedRecord.title}
+					open
+					onClose={() => setRequestTarget(null)}
+					patientId={result.patient.id}
+					target={requestTarget}
 					onRequested={handleRequested}
 				/>
 			)}
