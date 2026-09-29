@@ -40,3 +40,12 @@ export const HORIZON_URL =
 // mobile wallets connect through.
 export const WALLETCONNECT_PROJECT_ID =
 	process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID?.trim() ?? "";
+
+// Circle's USDC — the issuer the backend's trustlines point at (testnet
+// wallets from POST /wallet/create trust GBBD47…FLA5). Only used here to
+// price XLM in USDC for display; overridable if the backend switches issuer.
+export const USDC_ISSUER =
+	process.env.NEXT_PUBLIC_USDC_ISSUER?.trim() ||
+	(ALLOWED_STELLAR_NETWORK === "MAINNET"
+		? "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+		: "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5");

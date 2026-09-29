@@ -127,8 +127,13 @@ const attachApiLogging = (instance: AxiosInstance, label: string) => {
 	);
 };
 
-attachApiLogging(axiosPublic, "public");
-attachApiLogging(axiosAuth, "auth");
+// Dev-only. The error path calls console.warn/error through a variable,
+// which next.config's removeConsole can't strip — so production skips the
+// logger entirely rather than relying on that.
+if (process.env.NODE_ENV !== "production") {
+	attachApiLogging(axiosPublic, "public");
+	attachApiLogging(axiosAuth, "auth");
+}
 
 axiosAuth.interceptors.request.use((config) => {
 	const token = useAuthStore.getState().accessToken;
