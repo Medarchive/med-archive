@@ -4,7 +4,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Copy, Check } from "lucide-react";
 import ConfirmModal from "../../../components/ui/custom/ConfirmModal";
-import { useUnlinkWallet } from "../hooks";
+import { ALLOWED_STELLAR_NETWORK } from "../../../lib/wallet/config";
+import { useUnlinkWallet, useXlmPriceInUsdc } from "../hooks";
+
+const formatUsdc = (value: number) =>
+	value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 interface WalletBalanceHeroProps {
 	balance: string | null;
@@ -18,6 +22,12 @@ export default function WalletBalanceHero({
 	const [copied, setCopied] = useState(false);
 	const [confirmUnlink, setConfirmUnlink] = useState(false);
 	const { mutate: unlinkWallet, isPending: isUnlinking } = useUnlinkWallet();
+	const { data: xlmPrice } = useXlmPriceInUsdc();
+
+	// An estimate for display only — what the XLM would sell for at today's
+	// market price, not USDC the wallet actually holds.
+	const usdcValue =
+		balance && xlmPrice != null ? Number(balance) * xlmPrice : null;
 
 	const handleCopyAddress = async () => {
 		await navigator.clipboard.writeText(address);
@@ -34,6 +44,14 @@ export default function WalletBalanceHero({
 					<p className="mt-2 text-3xl font-bold">
 						{balance ? `${balance} XLM` : "Unfunded"}
 					</p>
+					{usdcValue != null && (
+						<p className="mt-1 text-sm text-[#9B9B9B]">
+							≈ {formatUsdc(usdcValue)} USDC
+							{ALLOWED_STELLAR_NETWORK === "TESTNET" && (
+								<span className="text-xs"> · testnet price, for reference only</span>
+							)}
+						</p>
+					)}
 				</div>
 
 				<button

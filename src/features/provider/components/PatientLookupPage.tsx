@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { TriangleAlert, RefreshCw, Eye } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import InputField from "../../../components/ui/custom/InputField";
@@ -24,6 +25,7 @@ import {
 import ProviderRecordDetailModal from "./ProviderRecordDetailModal";
 import RequestAccessModal, { RequestTarget } from "./RequestAccessModal";
 import CreateServiceOrderModal from "../../service-orders/components/CreateServiceOrderModal";
+import PatientClinicalProofsPanel from "./PatientClinicalProofsPanel";
 
 type IdentifierType = "careId" | "userId" | "email";
 
@@ -71,6 +73,7 @@ export default function PatientLookupPage() {
 	const [showCreateOrder, setShowCreateOrder] = useState(false);
 	const [viewingRecord, setViewingRecord] = useState<HealthRecordData | null>(null);
 
+	const queryClient = useQueryClient();
 	const { data: profile } = useProviderProfile();
 	const { mutate: lookupPatient, data: result, isPending, reset } = useLookupPatient();
 	const { mutate: checkStatus, isPending: isCheckingStatus } = useRecordRequestStatus();
@@ -157,6 +160,11 @@ export default function PatientLookupPage() {
 				// immediately, instead of only after the next fresh search.
 				if (data.status === "APPROVED") {
 					refetchApprovedRecords();
+					// A newly-approved proof request makes that patient's proofs
+					// of the type visible, so refresh the Clinical Proofs panel too.
+					queryClient.invalidateQueries({
+						queryKey: ["provider", "patient-clinical-proofs", data.patientId],
+					});
 				}
 			},
 		});
@@ -385,6 +393,8 @@ export default function PatientLookupPage() {
 						)}
 					</div>
 
+					<PatientClinicalProofsPanel patientId={result.patient.id} />
+
 					{trackedRequests.length > 0 && (
 						<div className="rounded-[12px] border border-[#F5F5F5] bg-white p-5">
 							<p className="mb-3 font-semibold">
@@ -413,7 +423,7 @@ export default function PatientLookupPage() {
 												<span className="text-xs text-[#9B9B9B]">
 													{tracked.kind === "record"
 														? "See Approved Records above"
-														: "Approved — the patient can now generate this proof"}
+														: "Approved — verify it under Clinical Proofs once the patient generates it"}
 												</span>
 											) : (
 												<Button

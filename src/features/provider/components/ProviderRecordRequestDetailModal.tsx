@@ -6,6 +6,7 @@ import { Button } from "../../../components/ui/button";
 import StatusBadge from "../../provider-request/components/StatusBadge";
 import { ProviderRecordRequestData } from "../types";
 import { describeProviderRequestedItem } from "../utils";
+import PatientClinicalProofsPanel from "./PatientClinicalProofsPanel";
 
 interface ProviderRecordRequestDetailModalProps {
 	request: ProviderRecordRequestData | null;
@@ -67,6 +68,17 @@ export default function ProviderRecordRequestDetailModal({
 						<p className="text-sm font-semibold">Status</p>
 						<StatusBadge status={request.status} />
 					</div>
+
+					{request.status === "APPROVED" && request.proofType && (
+						<div className="space-y-2 border-t border-[#F5F5F5] pt-4">
+							<p className="text-sm font-semibold">Proof</p>
+							<PatientClinicalProofsPanel
+								patientId={request.patientId}
+								proofType={request.proofType}
+								variant="inline"
+							/>
+						</div>
+					)}
 
 					{request.status === "APPROVED" && request.recordId && (
 						<div className="flex justify-end pt-2">

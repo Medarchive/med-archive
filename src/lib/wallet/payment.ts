@@ -22,21 +22,6 @@ export interface PaymentDetails {
 	memo: string;
 }
 
-export class PaymentPreflightError extends Error {
-	constructor(message: string) {
-		super(message);
-		this.name = "PaymentPreflightError";
-	}
-}
-
-// Stellar amounts have 7 decimal places. Compared as integer stroops, never
-// as floats — 0.1 + 0.2 is exactly the kind of error that turns "enough"
-// into "not enough" by one stroop.
-const toStroops = (amount: string): bigint => {
-	const [whole, fraction = ""] = amount.trim().split(".");
-	return BigInt(whole + fraction.padEnd(7, "0").slice(0, 7));
-};
-
 /**
  * Horizon reports a rejection as nested result codes rather than a message,
  * so the useful part has to be dug out or the user sees "Request failed with
@@ -81,8 +66,8 @@ function toHorizonError(error: unknown, assetCode: string): Error {
 }
 
 /**
- * Checks, builds, signs and submits the payment from `source` — the
- * patient's linked wallet — and returns the transaction hash for
+ * Builds, signs and submits the payment from `source` — the patient's
+ * linked wallet — and returns the transaction hash for
  * POST /service-orders/:id/payment/verify.
  */
 export async function submitPayment(
@@ -94,36 +79,9 @@ export async function submitPayment(
 
 	const server = new Horizon.Server(HORIZON_URL);
 
-	let account: Awaited<ReturnType<typeof server.loadAccount>>;
-	try {
-		account = await server.loadAccount(source);
-	} catch {
-		throw new PaymentPreflightError(
-			"Your wallet doesn't exist on this Stellar network yet — it needs to be funded with some XLM first.",
-		);
-	}
-
-	// Checked before the wallet prompt, so the patient isn't asked to sign
-	// something the network is certain to reject.
-	const line = account.balances.find(
-		(balance) =>
-			(balance.asset_type === "credit_alphanum4" ||
-				balance.asset_type === "credit_alphanum12") &&
-			balance.asset_code === details.assetCode &&
-			balance.asset_issuer === details.assetIssuer,
-	);
-
-	if (!line) {
-		throw new PaymentPreflightError(
-			`Your wallet can't hold ${details.assetCode} yet — it needs a ${details.assetCode} trustline before it can pay.`,
-		);
-	}
-
-	if (toStroops(line.balance) < toStroops(details.amount)) {
-		throw new PaymentPreflightError(
-			`Your wallet has ${line.balance} ${details.assetCode}, which isn't enough for this ${details.amount} ${details.assetCode} payment.`,
-		);
-	}
+	// The sequence number has to come from the network. GET /payment-intent
+	// has already checked the wallet can hold USDC.
+	const account = await server.loadAccount(source);
 
 	const transaction = new TransactionBuilder(account, {
 		fee: BASE_FEE,

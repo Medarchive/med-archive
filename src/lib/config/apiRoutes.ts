@@ -86,6 +86,8 @@ export const apiRoutes = {
 			`/api/v1/provider/profile/patients/${patientId}/records`,
 		PATIENT_APPROVED_RECORD_BY_ID: (patientId: string, recordId: string) =>
 			`/api/v1/provider/profile/patients/${patientId}/records/${recordId}`,
+		PATIENT_CLINICAL_PROOFS: (patientId: string) =>
+			`/api/v1/provider/profile/patients/${patientId}/clinical-proofs`,
 		ACTIVITY: "/api/v1/provider/profile/activity",
 		VERIFY_CLINICAL_PROOF: (proofId: string) =>
 			`/api/v1/provider/profile/clinical-proofs/${proofId}/verify`,
@@ -102,6 +104,8 @@ export const apiRoutes = {
 		BY_ID: (id: string) => `/api/v1/service-orders/${id}`,
 		PAYMENT_INTENT: (id: string) => `/api/v1/service-orders/${id}/payment-intent`,
 		VERIFY_PAYMENT: (id: string) => `/api/v1/service-orders/${id}/payment/verify`,
+		// Custodial wallets only — the backend signs and submits for them.
+		PAY: (id: string) => `/api/v1/service-orders/${id}/payment/pay`,
 	},
 
 	notifications: {
