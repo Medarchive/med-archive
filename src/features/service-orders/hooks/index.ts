@@ -132,6 +132,33 @@ const verifyPayment = async (
 	}
 };
 
+// POST /payment/pay — for wallets created via POST /wallet/create, the
+// backend signs, submits and marks the order PAID itself. Resolves to null
+// when the backend says the wallet isn't custodial (a 400 that moves no
+// money), meaning the patient signs in their own wallet instead.
+const payWithCustodialWallet = async (
+	axiosAuth: ReturnType<typeof useAxiosAuth>,
+	orderId: string,
+) => {
+	try {
+		const { data } = await axiosAuth.post<ApiSuccessResponse<Partial<ServiceOrderData>>>(
+			apiRoutes.serviceOrders.PAY(orderId),
+		);
+
+		return data;
+	} catch (error) {
+		if (
+			isAxiosError(error) &&
+			error.response?.status === 400 &&
+			/not\s+(a\s+)?custodial|no stored key/i.test(getApiErrorMessage(error, ""))
+		) {
+			return null;
+		}
+
+		throw error;
+	}
+};
+
 interface PayServiceOrderVariables {
 	orderId: string;
 	// The patient's linked (and verified) wallet — the only address the
@@ -142,16 +169,24 @@ interface PayServiceOrderVariables {
 	txHash?: string;
 }
 
-// PATIENT only. The full flow: payment details from the backend → the
-// patient picks their wallet in the kit → build, sign and submit the USDC
-// payment → ask the backend to verify the hash.
+// PATIENT only. Tries POST /payment/pay first (custodial wallets pay in one
+// call). If the wallet isn't custodial: GET /payment-intent → the patient
+// signs and submits the USDC payment in their own wallet → POST
+// /payment/verify with the transaction hash.
 export const usePayServiceOrder = () => {
 	const axiosAuth = useAxiosAuth();
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: async ({ orderId, linkedAddress, txHash }: PayServiceOrderVariables) => {
+		mutationFn: async ({
+			orderId,
+			linkedAddress,
+			txHash,
+		}: PayServiceOrderVariables) => {
 			if (txHash) return verifyPayment(axiosAuth, orderId, txHash);
+
+			const paid = await payWithCustodialWallet(axiosAuth, orderId);
+			if (paid) return paid;
 
 			const { data: intentRes } = await axiosAuth.get<
 				ApiSuccessResponse<PaymentIntentData>

@@ -1,3 +1,5 @@
+import { PaginationMeta } from "../../types/api";
+
 export type WalletNetwork = "MAINNET" | "TESTNET";
 
 // Confirmed against a real POST /wallet/verify response. `balance` isn't
@@ -26,14 +28,26 @@ export interface LinkWalletResponseData {
 	nonce: string;
 }
 
-// Exact per-transaction fields aren't documented in the OpenAPI spec — kept
-// loose and rendered defensively until a real response has been seen.
+// Confirmed against a real GET /wallet/transactions response — the
+// wallet's Stellar transactions as Horizon reports them. There's no amount
+// or type here (those live on the transaction's operations); a
+// service-order payment is recognisable by its ORD-… text memo.
 export interface WalletTransaction {
-	id?: string;
-	hash?: string;
-	type?: string;
-	amount?: string | number;
-	status?: string;
-	createdAt?: string;
-	[key: string]: unknown;
+	id: string;
+	hash: string;
+	createdAt: string;
+	successful: boolean;
+	ledger: number;
+	operationCount: number;
+	// In stroops (1 XLM = 10,000,000 stroops), as a string.
+	feeCharged: string;
+	memoType: string;
+	memo: string | null;
+}
+
+// Paginated like everything else, but the list is under `items`, not the
+// `data` key PaginatedData uses elsewhere.
+export interface WalletTransactionsPage {
+	items: WalletTransaction[];
+	meta: PaginationMeta;
 }

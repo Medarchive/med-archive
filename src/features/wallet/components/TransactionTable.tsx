@@ -4,6 +4,7 @@ import { useState } from "react";
 import Pagination from "../../../components/shared/Pagination";
 import { useWalletTransactions } from "../hooks";
 import { WalletTransaction } from "../types";
+import { shortHash, stroopsToXlm } from "../utils";
 import TransactionStatusBadge from "./TransactionStatusBadge";
 
 interface TransactionTableProps {
@@ -12,14 +13,11 @@ interface TransactionTableProps {
 
 const PAGE_SIZE = 8;
 
-const formatDate = (value?: string) => {
-	if (!value) return "—";
+const formatDate = (value: string) => {
 	const date = new Date(value);
 	if (Number.isNaN(date.getTime())) return value;
 	return date.toLocaleDateString();
 };
-
-const getTxId = (tx: WalletTransaction) => tx.id ?? tx.hash ?? "—";
 
 export default function TransactionTable({ onRowClick }: TransactionTableProps) {
 	const [currentPage, setCurrentPage] = useState(1);
@@ -28,7 +26,7 @@ export default function TransactionTable({ onRowClick }: TransactionTableProps) 
 		take: PAGE_SIZE,
 	});
 
-	const transactions = data?.data ?? [];
+	const transactions = data?.items ?? [];
 	const totalPages = data?.meta.totalPages ?? 1;
 
 	return (
@@ -39,11 +37,11 @@ export default function TransactionTable({ onRowClick }: TransactionTableProps) 
 				<table className="w-full min-w-135 text-sm">
 					<thead>
 						<tr className="text-left text-xs text-[#9B9B9B]">
-							<th className="pb-3 font-normal">Transaction ID</th>
-							<th className="pb-3 font-normal">Type</th>
+							<th className="pb-3 font-normal">Transaction</th>
+							<th className="pb-3 font-normal">Memo</th>
 							<th className="pb-3 font-normal">Status</th>
 							<th className="pb-3 font-normal">Date</th>
-							<th className="pb-3 font-normal text-right">Amount</th>
+							<th className="pb-3 font-normal text-right">Fee</th>
 						</tr>
 					</thead>
 
@@ -64,26 +62,24 @@ export default function TransactionTable({ onRowClick }: TransactionTableProps) 
 							</tr>
 						)}
 
-						{transactions.map((transaction, index) => (
+						{transactions.map((transaction) => (
 							<tr
-								key={getTxId(transaction) + index}
+								key={transaction.id}
 								onClick={() => onRowClick(transaction)}
 								className="cursor-pointer duration-150 hover:bg-[#FAFAFA]"
 							>
-								<td className="max-w-45 truncate py-3 font-medium">
-									{getTxId(transaction)}
+								<td className="py-3 font-mono text-xs font-medium">
+									{shortHash(transaction.hash)}
 								</td>
-								<td className="py-3 text-[#9B9B9B]">{transaction.type ?? "—"}</td>
+								<td className="py-3 text-[#9B9B9B]">{transaction.memo ?? "—"}</td>
 								<td className="py-3">
-									<TransactionStatusBadge status={transaction.status} />
+									<TransactionStatusBadge successful={transaction.successful} />
 								</td>
 								<td className="py-3 text-[#9B9B9B]">
 									{formatDate(transaction.createdAt)}
 								</td>
-								<td className="py-3 text-right font-medium">
-									{transaction.amount !== undefined
-										? `${transaction.amount} XLM`
-										: "—"}
+								<td className="py-3 text-right text-[#9B9B9B]">
+									{stroopsToXlm(transaction.feeCharged)}
 								</td>
 							</tr>
 						))}

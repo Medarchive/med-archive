@@ -1,0 +1,18 @@
+{
+  "default_branch": "master",
+  "branches": [
+    "feat/wallet-kit-and-new-endpoints",
+    "master",
+    "origin"
+  ],
+  "parent": {
+    "feat/wallet-kit-and-new-endpoints": "master",
+    "master": null,
+    "origin": "master"
+  },
+  "order": [
+    "master",
+    "feat/wallet-kit-and-new-endpoints",
+    "origin"
+  ]
+}

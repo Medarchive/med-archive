@@ -12,12 +12,13 @@ import {
 	getWalletErrorMessage,
 	signNonce,
 } from "../../../lib/wallet/kit";
+import { ApiSuccessResponse, PaginationParams } from "../../../types/api";
+import { fetchXlmPriceInUsdc } from "../../../lib/wallet/price";
 import {
-	ApiSuccessResponse,
-	PaginatedData,
-	PaginationParams,
-} from "../../../types/api";
-import { LinkWalletResponseData, WalletData, WalletTransaction } from "../types";
+	LinkWalletResponseData,
+	WalletData,
+	WalletTransactionsPage,
+} from "../types";
 
 export const WALLET_QUERY_KEY = ["wallet"];
 
@@ -173,10 +174,20 @@ export const useWalletTransactions = (params: PaginationParams = {}) => {
 		queryKey: [...WALLET_QUERY_KEY, "transactions", params],
 		queryFn: async () => {
 			const { data } = await axiosAuth.get<
-				ApiSuccessResponse<PaginatedData<WalletTransaction>>
+				ApiSuccessResponse<WalletTransactionsPage>
 			>(apiRoutes.wallet.TRANSACTIONS, { params });
 
 			return data.data;
 		},
+	});
+};
+
+// Market price of 1 XLM in USDC, for showing the wallet's XLM balance in
+// USDC terms. Read from Stellar directly — GET /wallet only returns XLM.
+export const useXlmPriceInUsdc = () => {
+	return useQuery({
+		queryKey: ["xlm-price-usdc"],
+		queryFn: fetchXlmPriceInUsdc,
+		staleTime: 60_000,
 	});
 };
