@@ -11,10 +11,11 @@ import { pageRoutes } from "../../../lib/config/routes";
 import { useAuthStore } from "../../../lib/stores/userAuthStore";
 import { getApiErrorMessage } from "../../../lib/utils";
 import {
-	buildFreighterUnavailableError,
-	FreighterUnavailableError,
-	toHexSignature,
-} from "../../../lib/utils/freighter";
+	assertCorrectNetwork,
+	connectWallet,
+	getWalletErrorMessage,
+	signNonce,
+} from "../../../lib/wallet/kit";
 import {
 	ApiErrorResponse,
 	ApiSuccessResponse,
@@ -227,21 +228,8 @@ export const useWalletLogin = () => {
 
 	return useMutation({
 		mutationFn: async () => {
-			// Loaded dynamically since it touches `window` and is only needed
-			// for this one, rarely-used sign-in path.
-			const freighter = await import("@stellar/freighter-api");
-
-			const connection = await freighter.isConnected();
-			if (connection.error || !connection.isConnected) {
-				throw buildFreighterUnavailableError();
-			}
-
-			const access = await freighter.requestAccess();
-			if (access.error || !access.address) {
-				throw new Error(access.error?.message ?? "Wallet access was denied");
-			}
-
-			const address = access.address;
+			const address = await connectWallet();
+			await assertCorrectNetwork();
 
 			const { data: nonceRes } = await axiosPublic.post<
 				ApiSuccessResponse<{ nonce: string }>
@@ -249,19 +237,14 @@ export const useWalletLogin = () => {
 
 			const nonce = nonceRes.data.nonce;
 
-			const signed = await freighter.signMessage(nonce, { address });
-			if (signed.error || !signed.signedMessage) {
-				throw new Error(
-					signed.error?.message ?? "Failed to sign the wallet nonce",
-				);
-			}
+			const signature = await signNonce(nonce, address);
 
 			const { data } = await axiosPublic.post<
 				ApiSuccessResponse<AuthTokensData>
 			>(apiRoutes.auth.USE_WALLET, {
 				address,
 				nonce,
-				signature: toHexSignature(signed.signedMessage),
+				signature,
 			});
 
 			return data;
@@ -272,19 +255,7 @@ export const useWalletLogin = () => {
 			await redirectAfterLogin(router, axiosAuth);
 		},
 		onError: (error) => {
-			if (error instanceof FreighterUnavailableError) {
-				toast.error(error.message, {
-					action: {
-						label: error.installLabel,
-						onClick: () => window.open(error.installUrl, "_blank", "noopener,noreferrer"),
-					},
-				});
-				return;
-			}
-
-			toast.error(
-				error instanceof Error ? error.message : getApiErrorMessage(error),
-			);
+			toast.error(getWalletErrorMessage(error));
 		},
 	});
 };

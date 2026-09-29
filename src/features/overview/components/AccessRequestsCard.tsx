@@ -2,6 +2,7 @@
 
 import { Button } from "../../../components/ui/button";
 import { useAccessRequests, useRespondToAccessRequest } from "../../provider-request/hooks";
+import { describeRequestedItem } from "../../provider-request/utils";
 
 const getInitials = (name: string) =>
 	name
@@ -52,7 +53,9 @@ export default function AccessRequestsCard() {
 									{request.providerName}
 								</p>
 								<p className="truncate text-xs text-[#9B9B9B]">
-									{request.requestType}
+									{[request.requestType, describeRequestedItem(request)]
+										.filter(Boolean)
+										.join(" · ")}
 								</p>
 							</div>
 						</div>

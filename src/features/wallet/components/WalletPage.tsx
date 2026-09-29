@@ -7,7 +7,7 @@ import WalletBalanceHero from "./WalletBalanceHero";
 import TransactionTable from "./TransactionTable";
 import TransactionDetailModal from "./TransactionDetailModal";
 import ConnectWalletModal from "./ConnectWalletModal";
-import { useWallet, useConnectWallet } from "../hooks";
+import { useWallet, useConnectWallet, useCreateCustodialWallet } from "../hooks";
 import { WalletTransaction } from "../types";
 import { useHasMounted } from "../../../hooks/useHasMounted";
 
@@ -15,6 +15,8 @@ export default function WalletPage() {
 	const hasMounted = useHasMounted();
 	const { data: wallet, isLoading } = useWallet();
 	const { mutate: connectWallet, isPending: isConnecting } = useConnectWallet();
+	const { mutate: createCustodialWallet, isPending: isCreatingCustodial } =
+		useCreateCustodialWallet();
 	const [selectedTransaction, setSelectedTransaction] =
 		useState<WalletTransaction | null>(null);
 	const [showConnectModal, setShowConnectModal] = useState(false);
@@ -32,7 +34,7 @@ export default function WalletPage() {
 					<p className="max-w-sm text-[#9B9B9B]">
 						{wallet
 							? "Your wallet is linked but not yet verified. Verify it to see your balance and transactions."
-							: "Connect your Stellar wallet with Freighter to see your balance and transaction history."}
+							: "Connect your Stellar wallet, or have one created for you, to see your balance and transaction history."}
 					</p>
 
 					<Button onClick={() => setShowConnectModal(true)}>
@@ -48,6 +50,12 @@ export default function WalletPage() {
 					onConfirm={(label) =>
 						connectWallet(label, { onSuccess: () => setShowConnectModal(false) })
 					}
+					onCreateCustodial={() =>
+						createCustodialWallet(undefined, {
+							onSuccess: () => setShowConnectModal(false),
+						})
+					}
+					isCreatingCustodial={isCreatingCustodial}
 				/>
 			</div>
 		);

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { X, LogOut } from "lucide-react";
-import { LayoutGrid, IdCard, Folder, Share2, Wallet } from "lucide-react";
+import { LayoutGrid, IdCard, Folder, Share2, ShieldCheck, ReceiptText, Wallet } from "lucide-react";
 import Logo from "../ui/custom/Logo";
 import ConfirmModal from "../ui/custom/ConfirmModal";
 import { useHeaderStore } from "@/lib/stores/header-store";
@@ -24,12 +24,18 @@ const navItems = [
 		href: pageRoutes.dashboardRoutes.PROVIDER_REQUEST,
 		icon: Share2,
 	},
+	{
+		label: "Clinical Proofs",
+		href: pageRoutes.dashboardRoutes.CLINICAL_PROOFS,
+		icon: ShieldCheck,
+	},
 	// Medical Timeline is not ready yet — re-enable once the section is built.
 	// {
 	// 	label: "Medical Timeline",
 	// 	href: pageRoutes.dashboardRoutes.MEDICAL_TIMELINE,
 	// 	icon: History,
 	// },
+	{ label: "Orders", href: pageRoutes.dashboardRoutes.ORDERS, icon: ReceiptText },
 	{ label: "Wallet", href: pageRoutes.dashboardRoutes.WALLET, icon: Wallet },
 ];
 

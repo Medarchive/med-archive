@@ -1,4 +1,5 @@
 import { UserRole } from "../../types/api";
+import { ClinicalProofType } from "../clinical-proofs/types";
 import { RequestStatus } from "../provider-request/types";
 
 // None of these response shapes are detailed in the OpenAPI spec beyond the
@@ -92,6 +93,9 @@ export interface AdminAccessRequestData {
 	patientId: string;
 	providerId: string;
 	recordId: string | null;
+	// Presumed to follow the provider-side DTO now that requests can target
+	// a clinical proof — unconfirmed for this endpoint.
+	proofType?: ClinicalProofType | null;
 	requestType: string;
 	note: string | null;
 	status: RequestStatus;

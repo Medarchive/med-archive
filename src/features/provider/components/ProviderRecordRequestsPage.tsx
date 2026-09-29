@@ -11,6 +11,7 @@ import {
 	useProviderRecordRequests,
 } from "../hooks";
 import { ProviderRecordRequestData } from "../types";
+import { describeProviderRequestedItem } from "../utils";
 import ProviderRecordDetailModal from "./ProviderRecordDetailModal";
 import ProviderRecordRequestDetailModal from "./ProviderRecordRequestDetailModal";
 
@@ -117,7 +118,7 @@ export default function ProviderRecordRequestsPage() {
 							<thead>
 								<tr className="text-left text-xs text-[#9B9B9B]">
 									<th className="pb-3 font-normal">Patient</th>
-									<th className="pb-3 font-normal">Record</th>
+									<th className="pb-3 font-normal">Requested item</th>
 									<th className="pb-3 font-normal">Request type</th>
 									<th className="pb-3 font-normal">Requested</th>
 									<th className="pb-3 font-normal">Status</th>
@@ -134,7 +135,7 @@ export default function ProviderRecordRequestsPage() {
 											{request.patient?.fullName ?? request.patient?.email ?? "Patient"}
 										</td>
 										<td className="py-3 text-[#9B9B9B]">
-											{request.record?.title ?? "Access revoked"}
+											{describeProviderRequestedItem(request)}
 										</td>
 										<td className="py-3 text-[#9B9B9B]">{request.requestType}</td>
 										<td className="py-3 text-[#9B9B9B]">{formatDate(request.createdAt)}</td>

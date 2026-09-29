@@ -22,6 +22,8 @@ export const pageRoutes = {
 		CARE_ID: "/dashboard/care-id",
 		RECORDS: "/dashboard/records",
 		PROVIDER_REQUEST: "/dashboard/provider-request",
+		CLINICAL_PROOFS: "/dashboard/clinical-proofs",
+		ORDERS: "/dashboard/orders",
 		MEDICAL_TIMELINE: "/dashboard/medical-timeline",
 		WALLET: "/dashboard/wallet",
 	},
@@ -41,5 +43,9 @@ export const pageRoutes = {
 		RECORD_REQUESTS: "/provider/record-requests",
 		PROFILE: "/provider/profile",
 		ACTIVITY: "/provider/activity",
+		// Providers need a verified wallet (with a USDC trustline) to create
+		// service orders — it's where patients' payments land.
+		WALLET: "/provider/wallet",
+		ORDERS: "/provider/orders",
 	},
 };

@@ -3,6 +3,7 @@
 import { Button } from "../../../components/ui/button";
 import Pagination from "../../../components/shared/Pagination";
 import { AccessRequestData } from "../types";
+import { describeRequestedItem } from "../utils";
 import StatusBadge from "./StatusBadge";
 
 interface ProviderRequestTableProps {
@@ -82,7 +83,12 @@ export default function ProviderRequestTable({
 									{request.organizationName ?? "—"}
 								</td>
 
-								<td className="py-3 text-[#9B9B9B]">{request.requestType}</td>
+								<td className="py-3 text-[#9B9B9B]">
+									<p>{request.requestType}</p>
+									{describeRequestedItem(request) && (
+										<p className="text-xs">{describeRequestedItem(request)}</p>
+									)}
+								</td>
 
 								<td className="max-w-50 truncate py-3 text-[#9B9B9B]">
 									{request.note ?? "—"}

@@ -13,7 +13,16 @@ import {
 	FormItem,
 	FormMessage,
 } from "../../../components/ui/form";
-import { useRequestRecordAccess, PatientLookupParams } from "../hooks";
+import { useRequestRecordAccess } from "../hooks";
+import { ClinicalProofType } from "../../clinical-proofs/types";
+import { getClinicalProofTypeLabel } from "../../clinical-proofs/constants";
+
+// A request targets exactly one thing — a specific record, or a clinical
+// disclosure proof type (the patient then generates that proof and the
+// provider verifies it, seeing only the disclosed fact).
+export type RequestTarget =
+	| { kind: "record"; recordId: string; title: string }
+	| { kind: "proof"; proofType: ClinicalProofType };
 
 const RequestAccessSchema = z.object({
 	requestType: z
@@ -29,25 +38,27 @@ type RequestAccessValues = z.infer<typeof RequestAccessSchema>;
 interface RequestAccessModalProps {
 	open: boolean;
 	onClose: () => void;
-	// Whichever identifier the lookup was made with — reused as-is so the
-	// request targets the same patient without asking the provider to
-	// re-enter it.
-	patientIdentifier: PatientLookupParams;
-	// Scoped to one specific record picked from the lookup's title dropdown
-	// — not a blanket "everything" request.
-	recordId: string;
-	recordTitle: string;
+	// The id from the lookup result, rather than whichever identifier the
+	// search used — lookup accepts `userId` but this endpoint only takes
+	// patientId/careId/email, so passing the search params through broke
+	// requests made after a User ID search.
+	patientId: string;
+	target: RequestTarget;
 	onRequested: (requestId: string) => void;
 }
 
 export default function RequestAccessModal({
 	open,
 	onClose,
-	patientIdentifier,
-	recordId,
-	recordTitle,
+	patientId,
+	target,
 	onRequested,
 }: RequestAccessModalProps) {
+	const targetLabel =
+		target.kind === "record"
+			? target.title
+			: `${getClinicalProofTypeLabel(target.proofType)} proof`;
+
 	const { mutate: requestAccess, isPending } = useRequestRecordAccess();
 
 	const form = useForm<RequestAccessValues>({
@@ -64,8 +75,10 @@ export default function RequestAccessModal({
 	const onSubmit = (values: RequestAccessValues) => {
 		requestAccess(
 			{
-				...patientIdentifier,
-				recordId,
+				patientId,
+				...(target.kind === "record"
+					? { recordId: target.recordId }
+					: { proofType: target.proofType }),
 				requestType: values.requestType,
 				note: values.note || undefined,
 			},
@@ -80,10 +93,22 @@ export default function RequestAccessModal({
 	};
 
 	return (
-		<Modal open={open} onClose={onClose} title="Request Access">
+		<Modal
+			open={open}
+			onClose={onClose}
+			title={target.kind === "record" ? "Request Access" : "Request Clinical Proof"}
+		>
 			<div className="mb-4 rounded-[8px] border border-[#F5F5F5] bg-[#FAFAFA] px-3 py-2 text-sm">
-				<span className="text-[#9B9B9B]">Requesting access to </span>
-				<span className="font-semibold">{recordTitle}</span>
+				<span className="text-[#9B9B9B]">
+					{target.kind === "record" ? "Requesting access to " : "Requesting a "}
+				</span>
+				<span className="font-semibold">{targetLabel}</span>
+				{target.kind === "proof" && (
+					<p className="mt-1 text-xs text-[#9B9B9B]">
+						You&apos;ll only see the fact the patient proves — not the
+						records behind it.
+					</p>
+				)}
 			</div>
 
 			<Form {...form}>
@@ -97,7 +122,11 @@ export default function RequestAccessModal({
 									<InputField
 										{...field}
 										label="What are you requesting?"
-										placeholder="e.g. Lab results, full history"
+										placeholder={
+											target.kind === "record"
+												? "e.g. Lab results, full history"
+												: "e.g. Blood group confirmation"
+										}
 										type="text"
 										error={fieldState.error?.message ?? null}
 									/>

@@ -5,6 +5,7 @@ import Pagination from "../../../components/shared/Pagination";
 import TableSkeleton from "../../../components/shared/skeletons/TableSkeleton";
 import StatusBadge from "../../provider-request/components/StatusBadge";
 import { RequestStatus } from "../../provider-request/types";
+import { getClinicalProofTypeLabel } from "../../clinical-proofs/constants";
 import { useAdminAccessRequests } from "../hooks";
 
 type StatusFilter = "ALL" | RequestStatus;
@@ -100,7 +101,12 @@ export default function AccessRequestsTable() {
 									{request.patient.fullName}
 								</td>
 								<td className="whitespace-nowrap py-3 pr-4 text-[#9B9B9B]">
-									{request.requestType}
+									<p>{request.requestType}</p>
+									{request.proofType && (
+										<p className="text-xs">
+											{getClinicalProofTypeLabel(request.proofType)} proof
+										</p>
+									)}
 								</td>
 								<td className="whitespace-nowrap py-3 pr-4 text-[#9B9B9B]">
 									{formatDate(request.createdAt)}

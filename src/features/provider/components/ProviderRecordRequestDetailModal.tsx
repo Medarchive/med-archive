@@ -5,6 +5,7 @@ import Modal from "../../../components/ui/custom/Modal";
 import { Button } from "../../../components/ui/button";
 import StatusBadge from "../../provider-request/components/StatusBadge";
 import { ProviderRecordRequestData } from "../types";
+import { describeProviderRequestedItem } from "../utils";
 
 interface ProviderRecordRequestDetailModalProps {
 	request: ProviderRecordRequestData | null;
@@ -42,9 +43,9 @@ export default function ProviderRecordRequestDetailModal({
 					</div>
 
 					<div className="flex items-center justify-between gap-4">
-						<p className="text-sm font-semibold">Record</p>
+						<p className="text-sm font-semibold">Requested item</p>
 						<p className="text-right text-sm text-[#9B9B9B]">
-							{request.record?.title ?? "No record available"}
+							{describeProviderRequestedItem(request)}
 						</p>
 					</div>
 
