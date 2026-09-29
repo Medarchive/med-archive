@@ -40,6 +40,14 @@ export interface ClinicalProofData {
 	createdAt: string;
 }
 
+// GET /provider/profile/patients/:patientId/clinical-proofs — only proofs
+// of types the provider has an APPROVED request for, and never claimData:
+// the fact itself is only disclosed by the verify endpoint below.
+export type ProviderClinicalProofData = Pick<
+	ClinicalProofData,
+	"id" | "proofType" | "status" | "generatedAt" | "createdAt"
+>;
+
 // POST /provider/profile/clinical-proofs/:proofId/verify. `valid` can be
 // false even on a 200 — the proof was checked, it just didn't hold.
 export interface ClinicalProofVerification {

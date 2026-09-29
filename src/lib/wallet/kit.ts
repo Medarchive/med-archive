@@ -9,6 +9,13 @@
 // there is one kit per page, initialised on first use. Nothing here ever
 // handles a secret key.
 //
+// The kit is imported lazily (see getKit), never at the top of this file.
+// Importing it runs a module-level effect that writes its theme variables
+// (--swk-*) onto <html>; loaded eagerly, that happened before React
+// hydrated and caused a hydration mismatch on every page. Loading it on the
+// first wallet action keeps it off <html> until hydration is long done — and
+// keeps the kit out of page bundles until someone actually uses a wallet.
+//
 // Albedo and Rabet are deliberately NOT registered: both reject
 // `signMessage` outright, and this backend proves wallet ownership (POST
 // /wallet/verify and POST /auth/use-wallet) by having the wallet sign a
@@ -16,16 +23,8 @@
 // later. They can be added once ownership moves to a signed challenge
 // transaction, which every wallet supports.
 
-import { StellarWalletsKit } from "@creit.tech/stellar-wallets-kit";
-import { FreighterModule } from "@creit.tech/stellar-wallets-kit/modules/freighter";
-import { HanaModule } from "@creit.tech/stellar-wallets-kit/modules/hana";
-import { LobstrModule } from "@creit.tech/stellar-wallets-kit/modules/lobstr";
-import { xBullModule } from "@creit.tech/stellar-wallets-kit/modules/xbull";
-import {
-	WalletConnectModule,
-	WalletConnectTargetChain,
-} from "@creit.tech/stellar-wallets-kit/modules/wallet-connect";
-import { Networks } from "@creit.tech/stellar-wallets-kit/types";
+import type { StellarWalletsKit } from "@creit.tech/stellar-wallets-kit";
+import type { Networks } from "@creit.tech/stellar-wallets-kit/types";
 import { isAxiosError } from "axios";
 import { getApiErrorMessage } from "../utils";
 import {
@@ -109,7 +108,7 @@ export function isMobileDevice(): boolean {
  * Freighter, xBull, Lobstr and Hana are browser extensions: they don't exist
  * on mobile browsers, so on a phone the only route to a wallet is
  * WalletConnect — which needs a project id, and without one is never
- * registered (see ensureInit).
+ * registered (see loadKit).
  */
 export interface WalletAvailability {
 	isMobile: boolean;
@@ -118,11 +117,11 @@ export interface WalletAvailability {
 	strandedOnMobile: boolean;
 }
 
-// Both flags below have to outlive this *module*, not just this page. Fast
+// Both fields below have to outlive this *module*, not just this page. Fast
 // Refresh re-runs a file on every edit, so plain module-level state resets
-// mid-session — and for `initialised` that means StellarWalletsKit.init runs
-// again and stands up a second WalletConnect client on the same project id,
-// whose pairing the phone can approve while the page waits on the other one
+// mid-session — and for `kit` that means StellarWalletsKit.init runs again
+// and stands up a second WalletConnect client on the same project id, whose
+// pairing the phone can approve while the page waits on the other one
 // forever. Hanging both off globalThis makes re-evaluation a no-op.
 interface WalletKitState {
 	/**
@@ -131,7 +130,8 @@ interface WalletKitState {
 	 * object.
 	 */
 	availability: WalletAvailability | null;
-	initialised: boolean;
+	/** The loaded-and-initialised kit, shared by every caller. */
+	kit: Promise<typeof StellarWalletsKit> | null;
 }
 
 declare global {
@@ -140,7 +140,7 @@ declare global {
 
 const state: WalletKitState = (globalThis.__medArchiveWalletKit ??= {
 	availability: null,
-	initialised: false,
+	kit: null,
 });
 
 export function walletAvailability(): WalletAvailability {
@@ -158,11 +158,22 @@ export function walletAvailability(): WalletAvailability {
 	return state.availability;
 }
 
-const kitNetwork = () =>
-	ALLOWED_STELLAR_NETWORK === "MAINNET" ? Networks.PUBLIC : Networks.TESTNET;
-
-function ensureInit(): void {
-	if (state.initialised) return;
+async function loadKit(): Promise<typeof StellarWalletsKit> {
+	const [
+		{ StellarWalletsKit },
+		{ FreighterModule },
+		{ HanaModule },
+		{ LobstrModule },
+		{ xBullModule },
+		{ WalletConnectModule, WalletConnectTargetChain },
+	] = await Promise.all([
+		import("@creit.tech/stellar-wallets-kit"),
+		import("@creit.tech/stellar-wallets-kit/modules/freighter"),
+		import("@creit.tech/stellar-wallets-kit/modules/hana"),
+		import("@creit.tech/stellar-wallets-kit/modules/lobstr"),
+		import("@creit.tech/stellar-wallets-kit/modules/xbull"),
+		import("@creit.tech/stellar-wallets-kit/modules/wallet-connect"),
+	]);
 
 	const modules = [
 		new FreighterModule(),
@@ -175,7 +186,7 @@ function ensureInit(): void {
 	// added only when one is configured. Without it the extension wallets
 	// above still work — the picker just doesn't offer the QR option.
 	if (WALLETCONNECT_PROJECT_ID) {
-		const origin = typeof window === "undefined" ? "" : window.location.origin;
+		const origin = window.location.origin;
 
 		modules.push(
 			new WalletConnectModule({
@@ -203,8 +214,19 @@ function ensureInit(): void {
 		);
 	}
 
-	StellarWalletsKit.init({ modules, network: kitNetwork() });
-	state.initialised = true;
+	// The kit's Networks enum values are the passphrases themselves.
+	StellarWalletsKit.init({ modules, network: NETWORK_PASSPHRASE as Networks });
+	return StellarWalletsKit;
+}
+
+// Loaded on the first wallet action and reused after. A failed load (e.g. a
+// dropped chunk request) is forgotten so the next action can retry.
+function getKit(): Promise<typeof StellarWalletsKit> {
+	state.kit ??= loadKit().catch((error) => {
+		state.kit = null;
+		throw error;
+	});
+	return state.kit;
 }
 
 /** Opens the wallet picker and returns the chosen address. */
@@ -216,10 +238,10 @@ export async function connectWallet(): Promise<string> {
 		throw new InsecureContextError();
 	}
 
-	ensureInit();
+	const kit = await getKit();
 
 	try {
-		const { address } = await StellarWalletsKit.authModal();
+		const { address } = await kit.authModal();
 		if (!address) throw new WalletRejectedError();
 		return address;
 	} catch (error) {
@@ -234,10 +256,10 @@ export async function connectWallet(): Promise<string> {
  * rejects, and the error surfaces far from its cause.
  */
 export async function assertCorrectNetwork(): Promise<void> {
-	ensureInit();
+	const kit = await getKit();
 
 	try {
-		const { network, networkPassphrase } = await StellarWalletsKit.getNetwork();
+		const { network, networkPassphrase } = await kit.getNetwork();
 
 		if (networkPassphrase && networkPassphrase !== NETWORK_PASSPHRASE) {
 			throw new WalletWrongNetworkError(network || "a different network");
@@ -282,10 +304,10 @@ export const toHexSignature = (signedMessage: string) =>
 
 /** Signs a backend-issued nonce and returns the hex signature it expects. */
 export async function signNonce(nonce: string, address: string): Promise<string> {
-	ensureInit();
+	const kit = await getKit();
 
 	try {
-		const { signedMessage } = await StellarWalletsKit.signMessage(nonce, {
+		const { signedMessage } = await kit.signMessage(nonce, {
 			networkPassphrase: NETWORK_PASSPHRASE,
 			address,
 		});
@@ -299,10 +321,10 @@ export async function signNonce(nonce: string, address: string): Promise<string>
 
 /** Signs prepared XDR. Returns the signed envelope, ready to submit. */
 export async function signXdr(xdr: string, address: string): Promise<string> {
-	ensureInit();
+	const kit = await getKit();
 
 	try {
-		const { signedTxXdr } = await StellarWalletsKit.signTransaction(xdr, {
+		const { signedTxXdr } = await kit.signTransaction(xdr, {
 			networkPassphrase: NETWORK_PASSPHRASE,
 			address,
 		});
@@ -316,10 +338,12 @@ export async function signXdr(xdr: string, address: string): Promise<string> {
 
 /** Forgets the connected wallet in the kit (not the backend link). */
 export async function disconnectWallet(): Promise<void> {
-	if (!state.initialised) return;
+	// Nothing to forget if no wallet action ever loaded the kit.
+	if (!state.kit) return;
 
 	try {
-		await StellarWalletsKit.disconnect();
+		const kit = await state.kit;
+		await kit.disconnect();
 	} catch {
 		// Already gone; nothing to do.
 	}

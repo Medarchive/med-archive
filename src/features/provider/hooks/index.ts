@@ -16,6 +16,10 @@ import {
 	UpdateProviderProfilePayload,
 } from "../types";
 import { RequestStatus } from "../../provider-request/types";
+import {
+	ClinicalProofVerification,
+	ProviderClinicalProofData,
+} from "../../clinical-proofs/types";
 
 export const PROVIDER_PROFILE_QUERY_KEY = ["provider", "profile"];
 export const PROVIDER_ACTIVITY_QUERY_KEY = ["provider", "activity"];
@@ -237,6 +241,44 @@ export const useProviderActivity = (params: PaginationParams = {}) => {
 			>(apiRoutes.providerProfile.ACTIVITY, { params });
 
 			return data.data;
+		},
+	});
+};
+
+// Only proofs of types this provider has an APPROVED request for, and
+// without claimData — which proof exists, not what it says.
+export const usePatientClinicalProofs = (patientId: string | null) => {
+	const axiosAuth = useAxiosAuth();
+
+	return useQuery({
+		queryKey: ["provider", "patient-clinical-proofs", patientId],
+		queryFn: async () => {
+			const { data } = await axiosAuth.get<
+				ApiSuccessResponse<ProviderClinicalProofData[]>
+			>(apiRoutes.providerProfile.PATIENT_CLINICAL_PROOFS(patientId as string));
+
+			return data.data;
+		},
+		enabled: !!patientId,
+	});
+};
+
+// The only way a provider learns the disclosed fact. `valid: false` is a
+// 200 too — the proof was checked and didn't hold — so callers must read
+// it rather than treat success as "verified".
+export const useVerifyClinicalProof = () => {
+	const axiosAuth = useAxiosAuth();
+
+	return useMutation({
+		mutationFn: async (proofId: string) => {
+			const { data } = await axiosAuth.post<
+				ApiSuccessResponse<ClinicalProofVerification>
+			>(apiRoutes.providerProfile.VERIFY_CLINICAL_PROOF(proofId));
+
+			return data.data;
+		},
+		onError: (error) => {
+			toast.error(getApiErrorMessage(error, "Couldn't verify this proof — try again"));
 		},
 	});
 };

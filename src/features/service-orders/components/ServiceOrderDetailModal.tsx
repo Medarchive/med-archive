@@ -148,9 +148,15 @@ function PayOrder({ order }: { order: ServiceOrderData }) {
 		);
 	}
 
+	const walletLabel = `${wallet.address.slice(0, 4)}…${wallet.address.slice(-4)}`;
+
 	const handlePay = () => {
 		pay(
-			{ orderId: order.id, linkedAddress: wallet.address, txHash: unconfirmedTxHash ?? undefined },
+			{
+				orderId: order.id,
+				linkedAddress: wallet.address,
+				txHash: unconfirmedTxHash ?? undefined,
+			},
 			{
 				onSuccess: () => setUnconfirmedTxHash(null),
 				onError: (error) => {
@@ -183,10 +189,9 @@ function PayOrder({ order }: { order: ServiceOrderData }) {
 				</div>
 			) : (
 				<p className="text-sm text-[#9B9B9B]">
-					You&apos;ll approve this payment in your Stellar wallet. It&apos;s sent
-					from your linked wallet ({wallet.address.slice(0, 4)}…
-					{wallet.address.slice(-4)}) straight to the provider — Med Archive never
-					holds the funds.
+					Paid from your linked wallet ({walletLabel}) straight to the provider.
+					If it&apos;s a wallet you connected yourself, you&apos;ll approve it
+					there.
 				</p>
 			)}
 
